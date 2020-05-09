@@ -76,7 +76,7 @@ BIP70 depends upon SSL certs of the domain you are using.
 
 The current library only supports DER format. Therefore, you must convert your cert and chain. Example commands given below:
 
-```
+```bash
 openssl x509 -outform der -in cert.pem -out cert.der
 openssl x509 -outform der -in chain.pem -out chain.der
 ```
