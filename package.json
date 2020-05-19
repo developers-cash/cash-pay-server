@@ -1,9 +1,10 @@
 {
-  "name": "api.nibor",
-  "version": "0.0.0",
+  "name": "cash-pay-server",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "npx nodemon app.js"
+    "dev": "npx nodemon app.js",
+    "start": "node app.js"
   },
   "dependencies": {
     "@developers.cash/libcash-js": "^0.9.5",
