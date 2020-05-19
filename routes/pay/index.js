@@ -30,7 +30,6 @@ router.all('/create', async (req, res) => {
       outputs: [],
       memo: 'Payment',
       data: 'Example',
-      workarounds: true,
     }, req.query, req.body);
     
     // We want to set the expiry at the point where the request was generated
@@ -58,8 +57,8 @@ router.all('/create', async (req, res) => {
     // Send response to client
     res.send({
       service: {
-        walletURI: `${(params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/${payment['_id']}`,
-        paymentURI: `https://${config.domain}/invoice/${payment['_id']}`,
+        walletURI: `${(params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${payment['_id']}`,
+        paymentURI: `https://${config.domain}/invoice/pay/${payment['_id']}`,
         stateURI: `https://${config.domain}/invoice/state/${payment['_id']}`,
         qrCodeURI: `https://${config.domain}/invoice/qrcode/${payment['_id']}`,
         webSocketURI: `wss://${config.domain}`,
@@ -90,6 +89,11 @@ router.get('/pay/:invoiceId', async (req, res) => {
       invoiceDB = await Invoice.findById(req.params.invoiceId);
       if (!invoiceDB) {
         throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
+      }
+      
+      // Make sure transaction has not already been broadcast
+      if (invoiceDB.state.broadcasted) {
+        throw new ExtError('Invoice already paid.', { httpStatusCode: 403 });
       }
       
       //
@@ -130,6 +134,11 @@ router.post('/pay/:invoiceId', async (req, res) => {
       invoiceDB = await Invoice.findById(req.params.invoiceId);
       if (!invoiceDB) {
         throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
+      }
+      
+      // Make sure transaction has not already been broadcast
+      if (invoiceDB.state.broadcasted) {
+        throw new ExtError('Invoice already paid.', { httpStatusCode: 403 });
       }
     
       //
@@ -195,7 +204,7 @@ router.get('/qrcode/:invoiceId', async (req, res) => {
       throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
     }
     
-    let value = `${(invoiceDB.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/${invoiceDB['_id']}`;
+    let value = `${(invoiceDB.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${invoiceDB['_id']}`;
     QRCode.toFileStream(res, value);
   } catch (err) {
     Log.error(req, err);

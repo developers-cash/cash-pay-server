@@ -11,7 +11,6 @@ const schema = new Schema({
     data: String,
     time: Number,
     expires: Number,
-    workarounds: Boolean,
     requestedWebhook: String,
     broadcastedWebhook: String,
     confirmedWebhook: String,
@@ -23,7 +22,8 @@ const schema = new Schema({
     requested: Date,
     broadcasted: Date,
     confirmed: Date,
-    doubleSpent: Date
+    doubleSpent: Date,
+    txIds: [ String ],
   }
 }, {
   timestamps: true
@@ -34,7 +34,7 @@ schema.methods.paymentURI = function() {
 };
 
 schema.methods.walletURI = function(cb) {
-  return `${(this.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/${this['_id']}`
+  return `${(this.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this['_id']}`
 };
 
 module.exports = mongoose.model('Invoice', schema);

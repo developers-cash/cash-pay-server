@@ -17,11 +17,6 @@ const Webhooks = require('../libs/webhooks');
 
 class BIP70 {
   static async paymentRequest(req, res, invoiceDB) {
-    // Setup certificates
-    var certificate = fs.readFileSync(path.resolve(config.certPath, 'cert.der')); //fs.readFileSync('./certs/cert.der');
-    var chain = fs.readFileSync(path.resolve(config.certPath, 'chain.der')); //fs.readFileSync('./certs/chain.der');
-    var privKey = fs.readFileSync(path.resolve(config.certPath, 'privkey.pem')); //fs.readFileSync('./certs/privkey.pem', 'utf8');
-    
     // Create the outputs
     let outputs = [];
     for (let i = 0; i < invoiceDB.params.outputs.length; i++) {
@@ -49,18 +44,32 @@ class BIP70 {
     if (_.get(invoiceDB, 'params.data')) {
       details.set('merchant_data', new Buffer(invoiceDB.params.data));
     }
-    
-    // Load the X509 certificate
-    var certificates = new PaymentProtocol().makeX509Certificates();
-    certificates.set('certificate', [certificate, chain]);
 
     // Form the request
     var request = new PaymentProtocol().makePaymentRequest();
     request.set('payment_details_version', 1);
-    request.set('pki_type', 'x509+sha256');
-    request.set('pki_data', certificates.serialize());
+    
+    // Only sign the request if certs are configured
+    // ElectronCash and Bitcoin.com Wallet do not require this
+    if (config.certPath) {
+      // Setup certificates (Note the HACK to support PEM!)
+      var certificate = this.PEMToDER(fs.readFileSync(path.resolve(config.certPath, 'cert.pem'), { encoding: 'utf8' }));
+      var chain = this.PEMToDER(fs.readFileSync(path.resolve(config.certPath, 'chain.pem'), { encoding: 'utf8' }));
+      var privKey = fs.readFileSync(path.resolve(config.certPath, 'privkey.pem'), { encoding: 'utf8' });
+      
+      // Load the X509 certificate
+      var certificates = new PaymentProtocol().makeX509Certificates();
+      certificates.set('certificate', [certificate, chain]);
+      
+      request.set('pki_type', 'x509+sha256');
+      request.set('pki_data', certificates.serialize());
+    }
+    
     request.set('serialized_payment_details', details.serialize());
-    request.sign(privKey);
+    
+    if (config.certPath) {
+      request.sign(privKey);
+    }
 
     // Serialize the request
     var rawBody = request.serialize();
@@ -97,11 +106,12 @@ class BIP70 {
       throw new Error('Transaction does not match invoice');
     }
     
-    // Send transactions
+    // Send transactions, save txids and set broadcast date
     let bitbox = new Bitbox({ restURL: (invoiceDB.params.network === 'main') ? `https://rest.bitcoin.com/v2/` : `https://trest.bitcoin.com/v2/` });
-    for (let i = 0; i < transactions.length; i++) {
-      let txResult = await bitbox.RawTransactions.sendRawTransaction(transactions[i].toString('hex'));
-    }
+    console.log(transactions.map(tx => tx.toString('hex')));
+    invoiceDB.state.txIds = await bitbox.RawTransactions.sendRawTransaction(transactions.map(tx => tx.toString('hex')));
+    invoiceDB.state.broadcasted = new Date();
+    invoiceDB.save();
     
     // Make a payment acknowledgement
     var ack = new PaymentProtocol().makePaymentACK();
@@ -117,15 +127,23 @@ class BIP70 {
     
     res.send(rawBody);
     
-    // Set broadcasted date of payment
-    invoiceDB.state.broadcasted = new Date();
-    invoiceDB.save();
-    
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'broadcasted', invoiceDB);
     
     // Send Broadcasted Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.broadcastedWebhook')) Webhooks.broadcasted(req, err, invoiceDB);
+  }
+  
+  /**
+   * The Bitcore BIP70 library expects DER certs.
+   * TODO Replace Bitcore with a better BIP70 Library that detects cert format.
+   */
+  static PEMToDER(cert) {
+    let split = cert.split(/\r?\n/);
+    let body = split.filter(line => !line.startsWith('-----'));
+    body = body.join();
+    console.log(body);
+    return Buffer.from(body, 'base64');
   }
 }
 
