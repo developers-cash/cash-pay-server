@@ -30,11 +30,31 @@ const schema = new Schema({
 });
 
 schema.methods.paymentURI = function() {
-  return `https://${config.domain}/invoice/${this['_id']}`;
+  return `https://${config.domain}/invoice/pay/${this['_id']}`;
+};
+
+schema.methods.qrCodeURI = function() {
+  return `https://${config.domain}/invoice/qrcode/${this['_id']}`;
+};
+
+schema.methods.stateURI = function() {
+  return `https://${config.domain}/invoice/state/${this['_id']}`;
 };
 
 schema.methods.walletURI = function(cb) {
   return `${(this.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this['_id']}`
 };
+
+schema.methods.webSocketURI = function() {
+  return `wss://${config.domain}`;
+};
+
+schema.methods.bitboxEndpoint = function() {
+  if (this.params.network === 'main') {
+    return `https://rest.bitcoin.com/v2/`;
+  }
+  
+  return `https://trest.bitcoin.com/v2/`;
+}
 
 module.exports = mongoose.model('Invoice', schema);

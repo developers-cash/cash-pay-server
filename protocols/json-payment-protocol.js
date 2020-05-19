@@ -38,7 +38,7 @@ class JSONPaymentProtocol {
       time: new Date().toISOString(),
       expires: new Date(invoiceDB.params.expires).toISOString(),
       memo: invoiceDB.params.memo,
-      paymentUrl: `https://${config.domain}/invoice/pay/${req.params.invoiceId}`,
+      paymentUrl: invoiceDB.paymentURI(),
       paymentId: invoiceDB._id
     });
     
@@ -100,11 +100,11 @@ class JSONPaymentProtocol {
       throw new Error('Transaction does not match invoice');
     }
     
-    // Send each transaction to the network
-    let bitbox = new Bitbox({ restURL: (invoiceDB.params.network === 'main') ? `https://rest.bitcoin.com/v2/` : `https://trest.bitcoin.com/v2/` });
-    for (let i = 0; i < transactions.length; i++) {
-      let txResult = await bitbox.RawTransactions.sendRawTransaction(transactions[i].toString('hex'));  
-    }
+    // Send transactions, save txids and set broadcast date
+    let bitbox = new Bitbox({ restURL: invoiceDB.bitboxEndpoint() });
+    invoiceDB.state.txIds = await bitbox.RawTransactions.sendRawTransaction(transactions.map(tx => tx.toString('hex')));
+    invoiceDB.state.broadcasted = new Date();
+    invoiceDB.save();
     
     // Send the response
     res.set({
@@ -115,10 +115,6 @@ class JSONPaymentProtocol {
       },
       memo: 'Payment successful'
     });
-    
-    // Set broadcasted date of payment
-    invoiceDB.state.broadcasted = new Date();
-    invoiceDB.save();
     
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'broadcasted', invoiceDB);

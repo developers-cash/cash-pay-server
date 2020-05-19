@@ -52,20 +52,20 @@ router.all('/create', async (req, res) => {
     
     // Create the payment in MongoDB (and omit 'address' and 'amount' as we've shifted these
     // into the outputs already.
-    let payment = await Invoice.create({ params: _.omit(params, ['address', 'amount']) });
+    let invoiceDB = await Invoice.create({ params: _.omit(params, ['address', 'amount']) });
     
     // Send response to client
     res.send({
       service: {
-        walletURI: `${(params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${payment['_id']}`,
-        paymentURI: `https://${config.domain}/invoice/pay/${payment['_id']}`,
-        stateURI: `https://${config.domain}/invoice/state/${payment['_id']}`,
-        qrCodeURI: `https://${config.domain}/invoice/qrcode/${payment['_id']}`,
-        webSocketURI: `wss://${config.domain}`,
+        walletURI: invoiceDB.walletURI(),
+        paymentURI: invoiceDB.paymentURI(),
+        stateURI: invoiceDB.stateURI(),
+        qrCodeURI: invoiceDB.qrCodeURI(),
+        webSocketURI: invoiceDB.webSocketURI(),
       },
       invoice: {
-        id: payment['_id'],
-        params: payment.params,
+        id: invoiceDB['_id'],
+        params: invoiceDB.params,
         state: {
           requested: null,
           broadcasted: null
@@ -204,8 +204,7 @@ router.get('/qrcode/:invoiceId', async (req, res) => {
       throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
     }
     
-    let value = `${(invoiceDB.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${invoiceDB['_id']}`;
-    QRCode.toFileStream(res, value);
+    QRCode.toFileStream(res, invoiceDB.walletURI());
   } catch (err) {
     Log.error(req, err);
     return res.status(err.httpStatusCode || 500).send({ error: err.message });

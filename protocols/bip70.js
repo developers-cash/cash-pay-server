@@ -34,7 +34,7 @@ class BIP70 {
     details.set('outputs', outputs);
     details.set('time', invoiceDB.params.time);
     details.set('expires', invoiceDB.params.expires);
-    details.set('payment_url', `https://${config.domain}/invoice/pay/${req.params.invoiceId}`);
+    details.set('payment_url', invoiceDB.paymentURI());
     
     // Optional fields
     if (_.get(invoiceDB, 'params.memo')) {
@@ -48,28 +48,7 @@ class BIP70 {
     // Form the request
     var request = new PaymentProtocol().makePaymentRequest();
     request.set('payment_details_version', 1);
-    
-    // Only sign the request if certs are configured
-    // ElectronCash and Bitcoin.com Wallet do not require this
-    if (config.certPath) {
-      // Setup certificates (Note the HACK to support PEM!)
-      var certificate = this.PEMToDER(fs.readFileSync(path.resolve(config.certPath, 'cert.pem'), { encoding: 'utf8' }));
-      var chain = this.PEMToDER(fs.readFileSync(path.resolve(config.certPath, 'chain.pem'), { encoding: 'utf8' }));
-      var privKey = fs.readFileSync(path.resolve(config.certPath, 'privkey.pem'), { encoding: 'utf8' });
-      
-      // Load the X509 certificate
-      var certificates = new PaymentProtocol().makeX509Certificates();
-      certificates.set('certificate', [certificate, chain]);
-      
-      request.set('pki_type', 'x509+sha256');
-      request.set('pki_data', certificates.serialize());
-    }
-    
     request.set('serialized_payment_details', details.serialize());
-    
-    if (config.certPath) {
-      request.sign(privKey);
-    }
 
     // Serialize the request
     var rawBody = request.serialize();
@@ -107,8 +86,7 @@ class BIP70 {
     }
     
     // Send transactions, save txids and set broadcast date
-    let bitbox = new Bitbox({ restURL: (invoiceDB.params.network === 'main') ? `https://rest.bitcoin.com/v2/` : `https://trest.bitcoin.com/v2/` });
-    console.log(transactions.map(tx => tx.toString('hex')));
+    let bitbox = new Bitbox({ restURL: invoiceDB.bitboxEndpoint() });
     invoiceDB.state.txIds = await bitbox.RawTransactions.sendRawTransaction(transactions.map(tx => tx.toString('hex')));
     invoiceDB.state.broadcasted = new Date();
     invoiceDB.save();
@@ -132,18 +110,6 @@ class BIP70 {
     
     // Send Broadcasted Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.broadcastedWebhook')) Webhooks.broadcasted(req, err, invoiceDB);
-  }
-  
-  /**
-   * The Bitcore BIP70 library expects DER certs.
-   * TODO Replace Bitcore with a better BIP70 Library that detects cert format.
-   */
-  static PEMToDER(cert) {
-    let split = cert.split(/\r?\n/);
-    let body = split.filter(line => !line.startsWith('-----'));
-    body = body.join();
-    console.log(body);
-    return Buffer.from(body, 'base64');
   }
 }
 

@@ -1,4 +1,3 @@
-const WS = require('ws');
 const SocketIO = require('socket.io');
 
 /**
