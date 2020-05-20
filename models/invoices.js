@@ -16,7 +16,7 @@ const schema = new Schema({
       broadcasted: String,
       confirmed: String,
       error: String
-    }
+    },
   },
   state: {
     requested: Date,

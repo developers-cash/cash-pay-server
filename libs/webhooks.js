@@ -5,11 +5,11 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 
-const Bitbox = require('bitbox-sdk').BITBOX;
+const LibCash = require('@developers.cash/libcash-js');
 
-// Read the JWT Key
-let bitbox = new Bitbox();
-let privateKey = bitbox.ECPair.fromWIF(config.wif);
+// LibCash instance
+let libCash = new LibCash();
+let privateKey = libCash.ECPair.fromWIF(config.wif);
 
 /**
  * Webhooks
@@ -22,9 +22,8 @@ class Webhooks {
      */
     static requested(invoice) {
       let payload = { type: 'requested', invoice: invoice };
-      let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
       return axios.post(invoice.params.webhooks.requested, payload, {
-        headers: { 'X-Signature': signature.toDER().toString('base64') }
+        headers: this._buildHeader(payload)
       });
     }
 
@@ -34,9 +33,8 @@ class Webhooks {
      */
     static broadcasted(invoice) {
       let payload = { type: 'broadcasted', invoice: invoice };
-      let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
       return axios.post(invoice.params.webhooks.broadcasted, payload, {
-        headers: { 'X-Signature': signature.toDER().toString('base64') }
+        headers: this._buildHeader(payload)
       });
     }
     
@@ -46,9 +44,8 @@ class Webhooks {
      */
     static confirmed(invoice) {
       let payload = { type: 'confirmed', invoice: invoice };
-      let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
       return axios.post(invoice.params.webhooks.confirmed, payload, {
-        headers: { 'X-Signature': signature.toDER().toString('base64') }
+        headers: this._buildHeader(payload)
       });
     }
     
@@ -74,11 +71,17 @@ class Webhooks {
         }
       };
       
-      let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
-      
       return axios.post(invoice.params.webhooks.error, payload, {
-        headers: { 'X-Signature': signature.toDER().toString('base64') }
+        headers: this._buildHeader(payload)
       });
+    }
+    
+    static _buildHeader(payload) {
+      let signature = libCash.ECPair.sign(privateKey, Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
+      return {
+        'X-Identity': config.domain,
+        'X-Signature': signature.toDER().toString('base64')
+      }
     }
 }
  

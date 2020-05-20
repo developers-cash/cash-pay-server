@@ -5,13 +5,7 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 
-const Bitbox = require('bitbox-sdk').BITBOX;
-
 const LibCash = require('@developers.cash/libcash-js');
-
-// Read the JWT Key
-let bitbox = new Bitbox();
-let privateKey = bitbox.ECPair.fromWIF(config.wif);
 
 // LibCash instance
 let libCash = new LibCash();

@@ -9,6 +9,7 @@ const routes = require('./routes');
 // Services
 const engine = require('./services/engine');
 const mongoose = require('./services/mongoose');
+const rates = require('./services/rates');
 const webSocket = require('./services/websocket');
 
 async function init() {
@@ -30,6 +31,17 @@ async function init() {
     console.log('Setting up Electrum-Cash Engine');
     await engine.start();
     console.log('Electrum-Cash Engine setup');
+  } catch (err) {
+    console.error(err.message);
+  }
+  
+  //
+  // Setup Rates Conversion
+  //
+  try {
+    console.log('Setting up Rates Conversion');
+    await rates.start();
+    console.log('Rates Conversion setup');
   } catch (err) {
     console.error(err.message);
   }

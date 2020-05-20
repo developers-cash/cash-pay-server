@@ -13,6 +13,7 @@ const Log = require('../../models/logs');
 const Webhooks = require('../../libs/webhooks');
 
 // Services
+const rates = require('../../services/rates');
 const webSocket = require('../../services/websocket');
 
 // Protocols
@@ -39,6 +40,11 @@ router.all('/create', async (req, res) => {
     // Make sure that at least one output script exisis
     if (!params.outputs.length) {
       throw new ExtError('You must provide at least one output.', { httpStatusCode: 400 });
+    }
+    
+    // Convert output amounts to Satoshis
+    for (let i = 0; i < params.outputs.length; i++) {
+      params.outputs[i].amount = await rates.convert(params.outputs[i].amount);
     }
     
     // Create the payment in MongoDB
