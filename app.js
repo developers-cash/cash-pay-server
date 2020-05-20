@@ -7,6 +7,7 @@ const cors = require('cors');
 const routes = require('./routes');
 
 // Services
+const engine = require('./services/engine');
 const mongoose = require('./services/mongoose');
 const webSocket = require('./services/websocket');
 
@@ -18,6 +19,17 @@ async function init() {
     console.log('Connecting to MongoDB');
     await mongoose.connect();
     console.log('Connected to MongoDB');
+  } catch (err) {
+    console.error(err.message);
+  }
+  
+  //
+  // Setup Engine
+  //
+  try {
+    console.log('Setting up Electrum-Cash Engine');
+    await engine.start();
+    console.log('Electrum-Cash Engine setup');
   } catch (err) {
     console.error(err.message);
   }

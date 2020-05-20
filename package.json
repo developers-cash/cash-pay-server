@@ -16,6 +16,7 @@
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
+    "electrum-cash": "^1.0.1",
     "express": "~4.16.0",
     "express-ws": "^4.0.0",
     "flowee-js-pure": "0.0.2",

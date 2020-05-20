@@ -41,6 +41,18 @@ class Webhooks {
     }
     
     /**
+     * Use to send a webhook when a transactoin is broadcasted to the network.
+     * @param invoice The Invoice
+     */
+    static confirmed(invoice) {
+      let payload = { type: 'confirmed', invoice: invoice };
+      let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
+      return axios.post(invoice.params.webhooks.confirmed, payload, {
+        headers: { 'X-Signature': signature.toDER().toString('base64') }
+      });
+    }
+    
+    /**
      * Use to send a webhook when an error has occurred.
      * @param req The ExpressJS Request
      * @param err The Error thrown

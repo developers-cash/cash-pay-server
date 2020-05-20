@@ -1,7 +1,6 @@
 const config = require('../config');
 
 const _ = require('lodash');
-const Bitbox = require('bitbox-sdk').BITBOX;
 const fs = require('fs');
 const path = require('path');
 const PaymentProtocol = require('bitcore-payment-protocol');
@@ -11,6 +10,7 @@ const ExtError = require('../libs/extended-error');
 const Log = require('../models/logs');
 const Payment = require('../models/invoices');
 
+const engine = require('../services/engine');
 const webSocket = require('../services/websocket');
 const Webhooks = require('../libs/webhooks');
 
@@ -101,8 +101,7 @@ class JSONPaymentProtocol {
     }
     
     // Send transactions, save txids and set broadcast date
-    let bitbox = new Bitbox({ restURL: invoiceDB.bitboxEndpoint() });
-    invoiceDB.state.txIds = await bitbox.RawTransactions.sendRawTransaction(transactions.map(tx => tx.toString('hex')));
+    invoiceDB.state.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')));
     invoiceDB.state.broadcasted = new Date();
     invoiceDB.save();
     

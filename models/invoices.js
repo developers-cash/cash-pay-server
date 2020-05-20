@@ -14,12 +14,14 @@ const schema = new Schema({
     webhooks: {
       requested: String,
       broadcasted: String,
+      confirmed: String,
       error: String
     }
   },
   state: {
     requested: Date,
     broadcasted: Date,
+    confirmed: Date,
     txIds: [ String ],
   }
 }, {
