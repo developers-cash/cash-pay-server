@@ -50,7 +50,7 @@ async function init() {
     webSocket.startServer(server);
     console.log('Websocket Server started');
   } catch(err) {
-    console.log(err);
+    console.error(err);
   }
 }
 

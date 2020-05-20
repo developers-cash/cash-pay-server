@@ -23,7 +23,7 @@ class Webhooks {
     static requested(invoice) {
       let payload = { type: 'requested', invoice: invoice };
       let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
-      return axios.post(invoice.params.requestedWebhook, payload, {
+      return axios.post(invoice.params.webhooks.requested, payload, {
         headers: { 'X-Signature': signature.toDER().toString('base64') }
       });
     }
@@ -35,7 +35,7 @@ class Webhooks {
     static broadcasted(invoice) {
       let payload = { type: 'broadcasted', invoice: invoice };
       let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
-      return axios.post(invoice.params.broadcastedWebhook, payload, {
+      return axios.post(invoice.params.webhooks.broadcasted, payload, {
         headers: { 'X-Signature': signature.toDER().toString('base64') }
       });
     }
@@ -64,7 +64,7 @@ class Webhooks {
       
       let signature = bitbox.ECPair.sign(privateKey, Buffer.from(bitbox.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
       
-      return axios.post(invoice.params.errorWebhook, payload, {
+      return axios.post(invoice.params.webhooks.error, payload, {
         headers: { 'X-Signature': signature.toDER().toString('base64') }
       });
     }

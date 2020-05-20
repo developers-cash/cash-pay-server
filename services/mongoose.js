@@ -12,14 +12,10 @@ mongoose.connection.on('error', (err) => {
   process.exit(1)
 })
 
-if (config.env === 'dev') {
-  mongoose.set('debug', false)
-}
-
 mongoose.set('debug', false)
 
 exports.connect = async () => {
-  mongoose.connect('mongodb://mongo:27017/app', {
+  mongoose.connect(config.mongoDB, {
     keepAlive: 1,
     useNewUrlParser: true
   })

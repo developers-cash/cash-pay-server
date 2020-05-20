@@ -12,21 +12,19 @@ const Log = require('../models/logs');
 const Payment = require('../models/invoices');
 const Utils = require('../libs/utils');
 
-const webSocket = require('../services/websocket');
 const Webhooks = require('../libs/webhooks');
+const webSocket = require('../services/websocket');
 
 class BIP70 {
   static async paymentRequest(req, res, invoiceDB) {
-    // Create the outputs
-    let outputs = [];
-    for (let i = 0; i < invoiceDB.params.outputs.length; i++) {
-      // Build the outputs and then put them in the correct format for BIP70 library
-      let builtOutput = Utils.buildOutput(invoiceDB.params.outputs[i]);
-      let output = new PaymentProtocol().makeOutput();
-      output.set('amount', builtOutput.amount);
-      output.set('script', builtOutput.script);
-      outputs.push(output.message);
-    }
+    // Create the outputs in BIP70 format
+    let outputs = invoiceDB.params.outputs.map(output => {
+      let builtOutput = Utils.buildOutput(output);
+      let bipOutput = new PaymentProtocol().makeOutput();
+      bipOutput.set('amount', builtOutput.amount);
+      bipOutput.set('script', builtOutput.script);
+      return bipOutput.message;
+    });
     
     // Construct the payment details
     var details = new PaymentProtocol('BCH').makePaymentDetails();
@@ -39,10 +37,6 @@ class BIP70 {
     // Optional fields
     if (_.get(invoiceDB, 'params.memo')) {
       details.set('memo', invoiceDB.params.memo);
-    }
-    
-    if (_.get(invoiceDB, 'params.data')) {
-      details.set('merchant_data', new Buffer(invoiceDB.params.data));
     }
 
     // Form the request
@@ -58,9 +52,7 @@ class BIP70 {
       'Content-Type': PaymentProtocol.LEGACY_PAYMENT.BCH.REQUEST_CONTENT_TYPE,
       'Content-Length': request.length,
       'Content-Transfer-Encoding': 'binary'
-    });
-    
-    res.send(rawBody);
+    }).send(rawBody);
     
     // Set requested date of payment
     invoiceDB.state.requested = new Date();
@@ -70,7 +62,7 @@ class BIP70 {
     webSocket.notify(invoiceDB._id, 'requested', invoiceDB);
     
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.requestedWebhook')) Webhooks.requested(invoiceDB);
+    if (_.get(invoiceDB, 'params.webhooks.requested')) Webhooks.requested(invoiceDB);
   }
   
   static async paymentAck(req, res, invoiceDB) {
@@ -101,15 +93,13 @@ class BIP70 {
       'Content-Type': PaymentProtocol.LEGACY_PAYMENT.BCH.PAYMENT_ACK_CONTENT_TYPE,
       'Content-Length': rawBody.length,
       'Content-Transfer-Encoding': 'binary'
-    });
-    
-    res.send(rawBody);
+    }).send(rawBody);
     
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'broadcasted', invoiceDB);
     
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.broadcastedWebhook')) Webhooks.broadcasted(req, err, invoiceDB);
+    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) Webhooks.broadcasted(invoiceDB);
   }
 }
 

@@ -5,7 +5,6 @@ const config = require('../../config');
 const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
-const QRCode = require('qrcode')
 
 // Utils/Libs
 const ExtError = require('../../libs/extended-error');
@@ -37,21 +36,12 @@ router.all('/create', async (req, res) => {
     params.time = now;
     params.expires = params.time + (params.expires || 60 * 60); // Default expiry to 1 Hour
     
-    // Push the address and amount into outputs (if they were given)
-    if (params.address && params.amount) {
-      params.outputs.push({
-        address: params.address,
-        amount: params.amount
-      });
-    }
-    
-    // Make sure that an output script exisis
+    // Make sure that at least one output script exisis
     if (!params.outputs.length) {
       throw new ExtError('You must provide at least one output.', { httpStatusCode: 400 });
     }
     
-    // Create the payment in MongoDB (and omit 'address' and 'amount' as we've shifted these
-    // into the outputs already.
+    // Create the payment in MongoDB
     let invoiceDB = await Invoice.create({ params: _.omit(params, ['address', 'amount']) });
     
     // Send response to client
@@ -60,7 +50,6 @@ router.all('/create', async (req, res) => {
         walletURI: invoiceDB.walletURI(),
         paymentURI: invoiceDB.paymentURI(),
         stateURI: invoiceDB.stateURI(),
-        qrCodeURI: invoiceDB.qrCodeURI(),
         webSocketURI: invoiceDB.webSocketURI(),
       },
       invoice: {
@@ -116,11 +105,10 @@ router.get('/pay/:invoiceId', async (req, res) => {
       res.status(err.httpStatusCode || 500).send({ error: err.message })
       
       // Notify any Websockets that might be listening
-      // TODO Provide "err" object
       webSocket.notify(invoiceDB._id, 'error', err.message);
       
       // Send Error Webhook Notification (if it is defined)
-      if (_.get(invoiceDB, 'params.errorWebhook')) Webhooks.error(req, err, invoiceDB);
+      if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB);
   }
 });
 
@@ -168,11 +156,10 @@ router.post('/pay/:invoiceId', async (req, res) => {
       res.status(err.httpStatusCode || 500).send({ error: err.message })
       
       // Notify any Websockets that might be listening
-      // TODO Provide "err" object
       webSocket.notify(invoiceDB._id, 'error', err.message);
       
       // Send Error Webhook Notification (if it is defined)
-      if (_.get(invoiceDB, 'params.errorWebhook')) Webhooks.error(req, err, invoiceDB);
+      if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB);
   }
 });
 
@@ -190,21 +177,6 @@ router.get('/state/:invoiceId', async (req, res) => {
       id: invoiceDB['_id'],
       state: invoiceDB.state
     });
-  } catch (err) {
-    Log.error(req, err);
-    return res.status(err.httpStatusCode || 500).send({ error: err.message });
-  }
-});
-
-router.get('/qrcode/:invoiceId', async (req, res) => {
-  try {
-    // Retrieve payment
-    let invoiceDB = await Invoice.findById(req.params.invoiceId);
-    if (!invoiceDB) {
-      throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
-    }
-    
-    QRCode.toFileStream(res, invoiceDB.walletURI());
   } catch (err) {
     Log.error(req, err);
     return res.status(err.httpStatusCode || 500).send({ error: err.message });

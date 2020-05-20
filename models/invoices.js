@@ -11,18 +11,15 @@ const schema = new Schema({
     data: String,
     time: Number,
     expires: Number,
-    requestedWebhook: String,
-    broadcastedWebhook: String,
-    confirmedWebhook: String,
-    doubleSpentWebhook: String,
-    signWebhooks: Boolean,
-    errorWebhook: String
+    webhooks: {
+      requested: String,
+      broadcasted: String,
+      error: String
+    }
   },
   state: {
     requested: Date,
     broadcasted: Date,
-    confirmed: Date,
-    doubleSpent: Date,
     txIds: [ String ],
   }
 }, {
@@ -33,16 +30,12 @@ schema.methods.paymentURI = function() {
   return `https://${config.domain}/invoice/pay/${this['_id']}`;
 };
 
-schema.methods.qrCodeURI = function() {
-  return `https://${config.domain}/invoice/qrcode/${this['_id']}`;
-};
-
 schema.methods.stateURI = function() {
   return `https://${config.domain}/invoice/state/${this['_id']}`;
 };
 
 schema.methods.walletURI = function(cb) {
-  return `${(this.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this['_id']}`
+  return `${(this.params.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this['_id']}`;
 };
 
 schema.methods.webSocketURI = function() {
@@ -50,11 +43,7 @@ schema.methods.webSocketURI = function() {
 };
 
 schema.methods.bitboxEndpoint = function() {
-  if (this.params.network === 'main') {
-    return `https://rest.bitcoin.com/v2/`;
-  }
-  
-  return `https://trest.bitcoin.com/v2/`;
+  return `${(this.params.network === 'main') ? 'https://rest.bitcoin.com/v2/' : 'https://trest.bitcoin.com/v2/'}`;
 }
 
 module.exports = mongoose.model('Invoice', schema);

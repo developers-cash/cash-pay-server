@@ -50,7 +50,7 @@ class JSONPaymentProtocol {
     webSocket.notify(invoiceDB._id, 'requested', invoiceDB);
     
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.requestedWebhook')) Webhooks.requested(invoiceDB);
+    if (_.get(invoiceDB, 'params.webhooks.requested')) Webhooks.requested(invoiceDB);
   }
   
   /**
@@ -77,7 +77,7 @@ class JSONPaymentProtocol {
     webSocket.notify(invoiceDB._id, 'verified', invoiceDB);
     
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.verifiedWebhook')) Webhooks.verified(invoiceDB);
+    if (_.get(invoiceDB, 'params.webhooks.verified')) Webhooks.verified(invoiceDB);
   }
   
   /**
@@ -120,7 +120,7 @@ class JSONPaymentProtocol {
     webSocket.notify(invoiceDB._id, 'broadcasted', invoiceDB);
     
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.broadcastedWebhook')) Webhooks.broadcasted(req, err, invoiceDB);
+    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) Webhooks.broadcasted(req, err, invoiceDB);
   }
 }
 
