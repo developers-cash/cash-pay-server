@@ -3,5 +3,6 @@ module.exports = {
   domain: process.env.DOMAIN,
   wif: process.env.WIF,
   mongoDB: process.env.MONGODB,
+  baseCurrency: process.env.BASE_CURRENCY || 'USD',
   ratesRefresh: process.env.RATES_REFRESH || 300
 }

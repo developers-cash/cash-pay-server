@@ -30,6 +30,7 @@ router.all('/create', async (req, res) => {
       outputs: [],
       memo: 'Payment',
       data: 'Example',
+      userCurrency: 'USD',
     }, req.query, req.body);
     
     // We want to set the expiry at the point where the request was generated
@@ -47,8 +48,15 @@ router.all('/create', async (req, res) => {
       params.outputs[i].amount = await rates.convert(params.outputs[i].amount);
     }
     
+    // Calculate the amount in user's currency and our base currency
+    let meta = {
+      baseCurrency: config.baseCurrency,
+      baseCurrencyTotal: params.outputs.reduce((total, output) => total + rates.convertBCHTo(output.amount, config.baseCurrency), 0).toFixed(2),
+      userCurrencyTotal: params.outputs.reduce((total, output) => total + rates.convertBCHTo(output.amount, params.userCurrency), 0).toFixed(2),
+    }
+    
     // Create the payment in MongoDB
-    let invoiceDB = await Invoice.create({ params: _.omit(params, ['address', 'amount']) });
+    let invoiceDB = await Invoice.create({ params: params, meta: meta });
     
     // Send response to client
     res.send({
@@ -65,6 +73,7 @@ router.all('/create', async (req, res) => {
           requested: null,
           broadcasted: null
         },
+        meta: meta
       },
     });
   } catch (err) {

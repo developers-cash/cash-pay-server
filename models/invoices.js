@@ -17,12 +17,18 @@ const schema = new Schema({
       confirmed: String,
       error: String
     },
+    userCurrency: String,
   },
   state: {
     requested: Date,
     broadcasted: Date,
     confirmed: Date,
     txIds: [ String ],
+  },
+  meta: {
+    baseCurrency: String,
+    baseCurrencyTotal: Number,
+    userCurrencyTotal: Number,
   }
 }, {
   timestamps: true

@@ -51,6 +51,16 @@ class Rates {
     return Math.round(value / Number(this.rates[currency]) * 100000000);
   }
   
+  /**
+   * @todo This is a hack - fix the above function you lazy piece of shit
+   */
+  convertBCHTo(amount, targetCurrency) {
+    console.log(parseFloat(amount / 100000000 * Number(this.rates[targetCurrency])));
+    console.log(parseFloat(amount / 100000000 * Number(this.rates[targetCurrency])).toFixed(2));
+    console.log(0.25000021475.toFixed(2));
+    return parseFloat(parseFloat(amount / 100000000 * Number(this.rates[targetCurrency])));
+  }
+  
   async refresh() {
     try {
       let priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH');
