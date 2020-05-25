@@ -77,10 +77,13 @@ class Webhooks {
     }
     
     static _buildHeader(payload) {
-      let signature = libCash.ECPair.sign(privateKey, Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8'));
+      let digest = Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8');
+      let signature = libCash.ECPair.sign(privateKey, digest);
       return {
-        'X-Identity': config.domain,
-        'X-Signature': signature.toDER().toString('base64')
+        'digest': digest.toString('base64'),
+        'x-signature-type': 'ECC',
+        'x-identity': config.domain,
+        'x-signature': signature.toDER().toString('base64')
       }
     }
 }

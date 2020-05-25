@@ -89,6 +89,10 @@ router.get('/pay/:invoiceId', async (req, res) => {
   let invoiceDB = null;
   
   try {
+      // if (invoiceDB.params.static) {
+      //  invoiceDB = this._createStaticInvoice(invoiceDB);
+      // }
+    
       // Retrieve Invoice from Database
       invoiceDB = await Invoice.findById(req.params.invoiceId);
       if (!invoiceDB) {

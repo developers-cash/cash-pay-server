@@ -55,10 +55,7 @@ class Rates {
    * @todo This is a hack - fix the above function you lazy piece of shit
    */
   convertBCHTo(amount, targetCurrency) {
-    console.log(parseFloat(amount / 100000000 * Number(this.rates[targetCurrency])));
-    console.log(parseFloat(amount / 100000000 * Number(this.rates[targetCurrency])).toFixed(2));
-    console.log(0.25000021475.toFixed(2));
-    return parseFloat(parseFloat(amount / 100000000 * Number(this.rates[targetCurrency])));
+    return parseFloat(amount / 100000000 * Number(this.rates[targetCurrency]));
   }
   
   async refresh() {
