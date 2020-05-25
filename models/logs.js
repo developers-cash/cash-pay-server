@@ -1,24 +1,24 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
 const schema = new Schema({
   level: String,
   payload: new Schema({
     endpoint: String,
     headers: {
-      "user-agent": String,
-      "accept": String,
-      "content-type": String,
-      "origin": String,
-      "referer": String,
-      "x-forwarded-for": String,
-      "x-real-ip": String
+      'user-agent': String,
+      accept: String,
+      'content-type': String,
+      origin: String,
+      referer: String,
+      'x-forwarded-for': String,
+      'x-real-ip': String
     },
     params: {
-      
+
     },
     query: {
-      
+
     },
     body: { type: 'Mixed' }
   }, {
@@ -26,14 +26,14 @@ const schema = new Schema({
   }),
   error: {
     message: String,
-    stack: String,
+    stack: String
   }
 }, {
   timestamps: true,
   useNestedStrict: true
-});
+})
 
-schema.statics.info = function(req) {
+schema.statics.info = function (req) {
   return this.create({
     level: 'info',
     payload: {
@@ -43,12 +43,12 @@ schema.statics.info = function(req) {
       query: req.query,
       body: req.body
     }
-  });
+  })
 }
 
-schema.statics.error = function(req, err) {
-  console.error(err);
-  
+schema.statics.error = function (req, err) {
+  console.error(err)
+
   return this.create({
     level: 'error',
     payload: {
@@ -62,7 +62,7 @@ schema.statics.error = function(req, err) {
       message: err.message,
       stack: err.stack
     }
-  });
+  })
 }
 
-module.exports = mongoose.model('Log', schema);
+module.exports = mongoose.model('Log', schema)

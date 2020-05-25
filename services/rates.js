@@ -1,59 +1,59 @@
 'use strict'
 
-const config = require('../config');
+const config = require('../config')
 
-const axios = require('axios');
+const axios = require('axios')
 
 /**
  * @todo Abstract out so other engines can be plugged in
  */
 class Rates {
-  constructor() {
-    this._rates = null;
+  constructor () {
+    this._rates = null
   }
-  
-  async start() {
-    setInterval(this.refresh, config.ratesRefresh * 1000);
-    this.refresh();
+
+  async start () {
+    setInterval(this.refresh, config.ratesRefresh * 1000)
+    this.refresh()
   }
-  
-  convertToBCH(amount, fromCurrency) {
+
+  convertToBCH (amount, fromCurrency) {
     if (typeof amount === 'string') {
-      fromCurrency = amount.replace(/[^a-zA-Z]/g, '');
-      amount = Number(amount.replace(/\D/g, ''));
+      fromCurrency = amount.replace(/[^a-zA-Z]/g, '')
+      amount = Number(amount.replace(/\D/g, ''))
     }
-    
+
     if (fromCurrency) {
       if (typeof this._rates[fromCurrency] === 'undefined') {
-        throw new Error(`Currency ${fromCurrency} not supported.`);
+        throw new Error(`Currency ${fromCurrency} not supported.`)
       }
-      
-      amount = Math.round(amount / Number(this._rates[fromCurrency]) * 100000000);
+
+      amount = Math.round(amount / Number(this._rates[fromCurrency]) * 100000000)
     }
-    
-    return amount;
+
+    return amount
   }
-  
-  convertFromBCH(amount, targetCurrency) {
+
+  convertFromBCH (amount, targetCurrency) {
     if (typeof this._rates[targetCurrency] === 'undefined') {
-      throw new Error(`Currency ${targetCurrency} not supported.`);
+      throw new Error(`Currency ${targetCurrency} not supported.`)
     }
-    
-    return parseFloat(amount / 100000000 * Number(this._rates[targetCurrency]));
+
+    return parseFloat(amount / 100000000 * Number(this._rates[targetCurrency]))
   }
-  
-  async refresh() {
+
+  async refresh () {
     try {
-      let priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH');
-      this._rates = priceRes.data.data.rates;
+      const priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH')
+      this._rates = priceRes.data.data.rates
     } catch (err) {
-      console.error("Error refreshing rates");
-      console.error(err);
-      return false;
+      console.error('Error refreshing rates')
+      console.error(err)
+      return false
     }
   }
 }
 
-const rates = new Rates;
+const rates = new Rates()
 
-module.exports = rates;
+module.exports = rates

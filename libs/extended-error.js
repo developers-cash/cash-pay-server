@@ -1,9 +1,9 @@
-let ExtendedError = function(message, params) {
-  let error = new Error(message);
-  for (key in params) {
-    error[key] = params[key];
+const ExtendedError = function (message, params) {
+  const error = new Error(message)
+  for (const key in params) {
+    error[key] = params[key]
   }
-  return error;
+  return error
 }
 
-module.exports = ExtendedError;
+module.exports = ExtendedError

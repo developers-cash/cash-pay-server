@@ -23,4 +23,4 @@ exports.connect = async () => {
   mongoose.set('useCreateIndex', true)
 
   return mongoose.connection
-} 
+}

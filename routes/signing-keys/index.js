@@ -1,33 +1,32 @@
 'use strict'
 
-const config = require('../../config');
+const config = require('../../config')
 
-const _ = require('lodash');
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 
-const Log = require('../../models/logs');
+const Log = require('../../models/logs')
 
-const LibCash = require('@developers.cash/libcash-js');
+const LibCash = require('@developers.cash/libcash-js')
 
 // LibCash instance
-let libCash = new LibCash();
-let privateKey = libCash.ECPair.fromWIF(config.wif);
-let publicKey = libCash.ECPair.toPublicKey(privateKey);
+const libCash = new LibCash()
+const privateKey = libCash.ECPair.fromWIF(config.wif)
+const publicKey = libCash.ECPair.toPublicKey(privateKey)
 
 class SigningKeysRoute {
-  constructor() {
-    router.all('/paymentProtocol.json', this.allPaymentProtocol);
-      
-    return router;
+  constructor () {
+    router.all('/paymentProtocol.json', this.allPaymentProtocol)
+
+    return router
   }
-  
-  async allPaymentProtocol(req, res) {
+
+  async allPaymentProtocol (req, res) {
     try {
       // Make these keys valid for only one hour
-      let expirationDate = new Date();
-      expirationDate.setHours(expirationDate.getHours()+1);
-      
+      const expirationDate = new Date()
+      expirationDate.setHours(expirationDate.getHours() + 1)
+
       res.send({
         owner: config.domain,
         expirationDate: expirationDate.toISOString(),
@@ -37,12 +36,12 @@ class SigningKeysRoute {
         publicKeys: [
           publicKey.toString('hex')
         ]
-      });
+      })
     } catch (err) {
-      Log.error(req, err);
-      return res.status(err.httpStatusCode || 500).send({ error: err.message });
+      Log.error(req, err)
+      return res.status(err.httpStatusCode || 500).send({ error: err.message })
     }
   }
 }
 
-module.exports = new SigningKeysRoute;
+module.exports = new SigningKeysRoute()

@@ -1,211 +1,210 @@
 'use strict'
 
-const config = require('../../config');
-
-const _ = require('lodash');
-const express = require('express');
-const router = express.Router();
+const _ = require('lodash')
+const express = require('express')
+const router = express.Router()
 
 // Utils/Libs
-const ExtError = require('../../libs/extended-error');
-const Invoice = require('../../models/invoices');
-const Log = require('../../models/logs');
+const ExtError = require('../../libs/extended-error')
+const Invoice = require('../../models/invoices')
+const Log = require('../../models/logs')
 
 // Services
-const rates = require('../../services/rates');
-const Webhooks = require('../../services/webhooks');
-const webSocket = require('../../services/websocket');
+const Webhooks = require('../../services/webhooks')
+const webSocket = require('../../services/websocket')
 
 // Protocols
-const BIP70 = require('../../protocols/bip70');
-const JSONPaymentProtocol = require('../../protocols/json-payment-protocol');
+const BIP70 = require('../../protocols/bip70')
+const JSONPaymentProtocol = require('../../protocols/json-payment-protocol')
 
 class InvoiceRoute {
-  constructor() {
+  constructor () {
     // Define the routes
-    router.all('/create', this.allCreate);
-    router.get('/pay/:invoiceId', this.getPay);
-    router.post('/pay/:invoiceId', this.postPay);
-    router.get('/state/:invoiceId', this.getState);
-    
-    return router;
+    router.all('/create', this.allCreate)
+    router.get('/pay/:invoiceId', this.getPay)
+    router.post('/pay/:invoiceId', this.postPay)
+    router.get('/state/:invoiceId', this.getState)
+
+    return router
   }
-  
-  async allCreate(req, res) {
-    Log.info(req);
-    
+
+  async allCreate (req, res) {
+    Log.info(req)
+
     try {
       // Set default values
-      let params = Object.assign({}, {
+      const params = Object.assign({}, {
         network: 'main',
         outputs: [],
         memo: 'Payment',
         data: 'Example',
-        userCurrency: 'USD',
-      }, req.query, req.body);
-      
+        userCurrency: 'USD'
+      }, req.query, req.body)
+
       // Make sure that at least one output script exisis
       if (!params.outputs.length) {
-        throw new ExtError('You must provide at least one output.', { httpStatusCode: 400 });
+        throw new ExtError('You must provide at least one output.', { httpStatusCode: 400 })
       }
-      
+
       // Create the payment in MongoDB
-      let invoiceDB = await Invoice.create({ params: params });
-      
+      const invoiceDB = await Invoice.create({ params: params })
+
       // Send response to client
       res.send({
         service: {
           walletURI: invoiceDB.walletURI(),
           paymentURI: invoiceDB.paymentURI(),
           stateURI: invoiceDB.stateURI(),
-          webSocketURI: invoiceDB.webSocketURI(),
+          webSocketURI: invoiceDB.webSocketURI()
         },
         invoice: {
-          id: invoiceDB['_id'],
+          id: invoiceDB._id,
           params: invoiceDB.params,
-          state: invoiceDB.state,
-        },
-      });
+          state: invoiceDB.state
+        }
+      })
     } catch (err) {
-      Log.error(req, err);
-      return res.status(err.httpStatusCode || 500).send({ error: err.message });
+      Log.error(req, err)
+      return res.status(err.httpStatusCode || 500).send({ error: err.message })
     }
   }
-  
-  async getPay(req, res) {
-    Log.info(req);
-    
+
+  async getPay (req, res) {
+    Log.info(req)
+
     // Define this here so we have access to it in the "catch"
-    let invoiceDB = null;
-    
+    let invoiceDB = null
+
     try {
-        // Retrieve Invoice from Database
-        invoiceDB = await Invoice.findById(req.params.invoiceId);
-        if (!invoiceDB) {
-          throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
-        }
-        
-        // If this is a static (paper) invoice...
-        if (invoiceDB.params.static) {
-          console.log(invoiceDB);
-          invoiceDB = await this._createStaticInvoice(invoiceDB);
-          console.log(invoiceDB);
-        }
-        
-        // Make sure invoice has not expired
-        if (new Date() > new Date(invoiceDB.state.expires)) {
-          throw new ExtError('Invoice has expired.', { httpStatusCode: 403 });
-        }
-        
-        // Make sure transaction has not already been broadcast
-        if (invoiceDB.state.broadcasted) {
-          throw new ExtError('Invoice already paid.', { httpStatusCode: 403 });
-        }
-        
-        //
-        // BIP70 Payment Request
-        //
-        if (req.get('accept') === 'application/bitcoincash-paymentrequest') {
-          return await BIP70.paymentRequest(req, res, invoiceDB);
-        }
-        
-        //
-        // JSON Payment Protocol Request
-        //
-        if (req.get('accept') === 'application/payment-request') {
-          return await JSONPaymentProtocol.paymentRequest(req, res, invoiceDB);
-        }
-        
-        throw new ExtError('Unsupported payment type.', { httpStatusCode: 400 });
-    } catch(err) {
-        Log.error(req, err);
-        res.status(err.httpStatusCode || 500).send({ error: err.message })
-        
-        // Notify any Websockets that might be listening
-        webSocket.notify(invoiceDB._id, 'error', err.message);
-        
-        // Send Error Webhook Notification (if it is defined)
-        if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB);
+      // Retrieve Invoice from Database
+      invoiceDB = await Invoice.findById(req.params.invoiceId)
+      if (!invoiceDB) {
+        throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 })
+      }
+
+      // If this is a static (paper) invoice...
+      if (invoiceDB.params.static) {
+        console.log(invoiceDB)
+        invoiceDB = await this._createStaticInvoice(invoiceDB)
+        console.log(invoiceDB)
+      }
+
+      // Make sure invoice has not expired
+      if (new Date() > new Date(invoiceDB.state.expires)) {
+        throw new ExtError('Invoice has expired.', { httpStatusCode: 403 })
+      }
+
+      // Make sure transaction has not already been broadcast
+      if (invoiceDB.state.broadcasted) {
+        throw new ExtError('Invoice already paid.', { httpStatusCode: 403 })
+      }
+
+      //
+      // BIP70 Payment Request
+      //
+      if (req.get('accept') === 'application/bitcoincash-paymentrequest') {
+        return await BIP70.paymentRequest(req, res, invoiceDB)
+      }
+
+      //
+      // JSON Payment Protocol Request
+      //
+      if (req.get('accept') === 'application/payment-request') {
+        return await JSONPaymentProtocol.paymentRequest(req, res, invoiceDB)
+      }
+
+      throw new ExtError('Unsupported payment type.', { httpStatusCode: 400 })
+    } catch (err) {
+      Log.error(req, err)
+      res.status(err.httpStatusCode || 500).send({ error: err.message })
+
+      // Notify any Websockets that might be listening
+      webSocket.notify(invoiceDB._id, 'error', err.message)
+
+      // Send Error Webhook Notification (if it is defined)
+      if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB)
     }
   }
-  
-  async postPay(req, res) {
-    Log.info(req);
-    
-    let invoiceDB = null;
-    
+
+  async postPay (req, res) {
+    Log.info(req)
+
+    let invoiceDB = null
+
     try {
-        // Retrieve Invoice from Database
-        invoiceDB = await Invoice.findById(req.params.invoiceId);
-        if (!invoiceDB) {
-          throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
-        }
-        
-        // Make sure transaction has not already been broadcast
-        if (invoiceDB.state.broadcasted) {
-          throw new ExtError('Invoice already paid.', { httpStatusCode: 403 });
-        }
-      
-        //
-        // BIP70 Payment Ack
-        //
-        if (req.get('accept') === 'application/bitcoincash-paymentack') {
-          return await BIP70.paymentAck(req, res, invoiceDB);
-        }
-        
-        //
-        // JSON Payment Protocol Payment Verification
-        //
-        if (req.get('content-type') === 'application/verify-payment') {
-          return await JSONPaymentProtocol.paymentVerification(req, res, invoiceDB);
-        }
-        
-        //
-        // JSON Payment Protocol Payment
-        //
-        if (req.get('content-type') === 'application/payment') {
-          return await JSONPaymentProtocol.payment(req, res, invoiceDB);
-        }
-        
-        throw new ExtError('Unsupported payment type.', { httpStatusCode: 400 });
-    } catch(err) {
-        Log.error(req, err);
-        res.status(err.httpStatusCode || 500).send({ error: err.message })
-        
-        // Notify any Websockets that might be listening
-        webSocket.notify(invoiceDB._id, 'error', err.message);
-        
-        // Send Error Webhook Notification (if it is defined)
-        if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB);
+      // Retrieve Invoice from Database
+      invoiceDB = await Invoice.findById(req.params.invoiceId)
+      if (!invoiceDB) {
+        throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 })
+      }
+
+      // Make sure transaction has not already been broadcast
+      if (invoiceDB.state.broadcasted) {
+        throw new ExtError('Invoice already paid.', { httpStatusCode: 403 })
+      }
+
+      //
+      // BIP70 Payment Ack
+      //
+      if (req.get('accept') === 'application/bitcoincash-paymentack') {
+        return await BIP70.paymentAck(req, res, invoiceDB)
+      }
+
+      //
+      // JSON Payment Protocol Payment Verification
+      //
+      if (req.get('content-type') === 'application/verify-payment') {
+        return await JSONPaymentProtocol.paymentVerification(req, res, invoiceDB)
+      }
+
+      //
+      // JSON Payment Protocol Payment
+      //
+      if (req.get('content-type') === 'application/payment') {
+        return await JSONPaymentProtocol.payment(req, res, invoiceDB)
+      }
+
+      throw new ExtError('Unsupported payment type.', { httpStatusCode: 400 })
+    } catch (err) {
+      Log.error(req, err)
+      res.status(err.httpStatusCode || 500).send({ error: err.message })
+
+      // Notify any Websockets that might be listening
+      webSocket.notify(invoiceDB._id, 'error', err.message)
+
+      // Send Error Webhook Notification (if it is defined)
+      if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB)
     }
   }
-  
-  async getState(req, res) {
+
+  async getState (req, res) {
     try {
       // Retrieve payment
-      let invoiceDB = await Invoice.findById(req.params.invoiceId);
+      const invoiceDB = await Invoice.findById(req.params.invoiceId)
       if (!invoiceDB) {
-        throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 });
+        throw new ExtError('Invoice ID does not exist.', { httpStatusCode: 404 })
       }
-      
+
       res.send({
-        id: invoiceDB['_id'],
+        id: invoiceDB._id,
         state: invoiceDB.state
-      });
+      })
     } catch (err) {
-      Log.error(req, err);
-      return res.status(err.httpStatusCode || 500).send({ error: err.message });
+      Log.error(req, err)
+      return res.status(err.httpStatusCode || 500).send({ error: err.message })
     }
   }
-  
-  async _createStaticInvoice(invoice) {
-    invoiceDB = await Invoice.create({
-      params: invoiceDB.params,
+
+  async _createStaticInvoice (invoice) {
+    const staticInvoice = await Invoice.create({
+      params: invoice.params,
       state: {
-        originalId:  invoiceDB._id
+        originalId: invoice._id
       }
-    });
+    })
+
+    return staticInvoice
   }
 }
 
-module.exports = new InvoiceRoute(); 
+module.exports = new InvoiceRoute()
