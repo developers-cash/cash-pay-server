@@ -12,7 +12,7 @@ const Payment = require('../models/invoices');
 const Utils = require('../libs/utils');
 
 const engine = require('../services/engine');
-const Webhooks = require('../libs/webhooks');
+const Webhooks = require('../services/webhooks');
 const webSocket = require('../services/websocket');
 
 class BIP70 {

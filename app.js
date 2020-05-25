@@ -1,5 +1,7 @@
 'use strict';
 
+const config = require('./config');
+
 // Application
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -12,7 +14,7 @@ const mongoose = require('./services/mongoose');
 const rates = require('./services/rates');
 const webSocket = require('./services/websocket');
 
-async function init() {
+async function main() {
   //
   // Setup MongoDB
   //
@@ -20,17 +22,6 @@ async function init() {
     console.log('Connecting to MongoDB');
     await mongoose.connect();
     console.log('Connected to MongoDB');
-  } catch (err) {
-    console.error(err.message);
-  }
-  
-  //
-  // Setup Engine
-  //
-  try {
-    console.log('Setting up Electrum-Cash Engine');
-    await engine.start();
-    console.log('Electrum-Cash Engine setup');
   } catch (err) {
     console.error(err.message);
   }
@@ -47,6 +38,17 @@ async function init() {
   }
   
   //
+  // Setup Engine
+  //
+  try {
+    console.log('Setting up Electrum-Cash Engine');
+    await engine.start();
+    console.log('Electrum-Cash Engine setup');
+  } catch (err) {
+    console.error(err.message);
+  }
+  
+  //
   // Setup ExpressJS middleware, routes, etc
   //
   var app = express();
@@ -58,12 +60,9 @@ async function init() {
   //
   // Set port and start ExpressJS Server
   //
-  var port = process.env.PORT || 8080;
-  var server = app.listen(port, function() {
+  var server = app.listen(config.port, function() {
     console.log('Starting ExpressJS server');
-    const host = server.address().address;
-    const port = server.address().port;
-    console.log(`ExpressJS listening at http://${host}:${port}`);
+    console.log(`ExpressJS listening at http://${server.address().address}:${server.address().port}`);
   });
   
   //
@@ -78,5 +77,5 @@ async function init() {
   }
 }
 
-init();
+main();
 

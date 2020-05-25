@@ -5,9 +5,15 @@ const config = require('../config');
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => { res.send({status: 'OK'}) })
+class RootRoute {
+  constructor() {
+    router.get('/', (req, res) => { res.send({status: 'OK'}) })
+    router.use('/invoice', require('./pay'));
+    router.use('/signingKeys', require('./signing-keys'));
+    
+    return router;
+  }
+}
 
-router.use('/invoice', require('./pay'));
-router.use('/signingKeys', require('./signing-keys'));
 
-module.exports = router;
+module.exports = new RootRoute;

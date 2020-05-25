@@ -4,7 +4,7 @@ const _ = require('lodash');
 
 const ElectrumCluster = require('electrum-cash').Cluster;
 const Invoice = require('../models/invoices');
-const Webhooks = require('../libs/webhooks');
+const Webhooks = require('../services/webhooks');
 
 /**
  * @todo Abstract out so other engines can be plugged in

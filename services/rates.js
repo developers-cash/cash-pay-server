@@ -9,8 +9,7 @@ const axios = require('axios');
  */
 class Rates {
   constructor() {
-    this.rates = null;
-    this.lastRefresh = new Date();
+    this._rates = null;
   }
   
   async start() {
@@ -18,50 +17,35 @@ class Rates {
     this.refresh();
   }
   
-  /**
-   * @todo This code is disgusting. Fix me.
-   */
-  convert(amount) {
-    // If it's already in satoshis, do nothing.
-    if (typeof amount === 'number') {
-      return amount;
+  convertToBCH(amount, fromCurrency) {
+    if (typeof amount === 'string') {
+      fromCurrency = amount.replace(/[^a-zA-Z]/g, '');
+      amount = Number(amount.replace(/\D/g, ''));
     }
     
-    // Otherwise, let's split it and get the value
-    let splitValue = amount.match(/[\d\.]+/g);
-    if (splitValue.length !== 1) {
-      throw new Error('Invalid output amount given.');
-    }
-    let value = Number(splitValue[0]);
-    
-    // Now let's split the currency
-    let splitCurrency = amount.match(/[a-zA-Z]+/g);
-    
-    // If no currency was specified (e.g. user accidentally gave a string)...
-    if (!splitCurrency) {
-      return Math.round(value);
+    if (fromCurrency) {
+      if (typeof this._rates[fromCurrency] === 'undefined') {
+        throw new Error(`Currency ${fromCurrency} not supported.`);
+      }
+      
+      amount = Math.round(amount / Number(this._rates[fromCurrency]) * 100000000);
     }
     
-    // If the currency does not have a rate conversion
-    let currency = splitCurrency[0];
-    if (typeof this.rates[currency] === 'undefined') {
-      throw new Error(`Currency ${currency} not supported.`);
-    }
-    
-    return Math.round(value / Number(this.rates[currency]) * 100000000);
+    return amount;
   }
   
-  /**
-   * @todo This is a hack - fix the above function you lazy piece of shit
-   */
-  convertBCHTo(amount, targetCurrency) {
-    return parseFloat(amount / 100000000 * Number(this.rates[targetCurrency]));
+  convertFromBCH(amount, targetCurrency) {
+    if (typeof this._rates[targetCurrency] === 'undefined') {
+      throw new Error(`Currency ${targetCurrency} not supported.`);
+    }
+    
+    return parseFloat(amount / 100000000 * Number(this._rates[targetCurrency]));
   }
   
   async refresh() {
     try {
       let priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH');
-      this.rates = priceRes.data.data.rates;
+      this._rates = priceRes.data.data.rates;
     } catch (err) {
       console.error("Error refreshing rates");
       console.error(err);

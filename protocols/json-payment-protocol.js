@@ -11,8 +11,8 @@ const Log = require('../models/logs');
 const Payment = require('../models/invoices');
 
 const engine = require('../services/engine');
+const Webhooks = require('../services/webhooks');
 const webSocket = require('../services/websocket');
-const Webhooks = require('../libs/webhooks');
 
 /**
  * JSON Payment Protocol
