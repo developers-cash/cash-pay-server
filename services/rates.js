@@ -20,7 +20,7 @@ class Rates {
   convertToBCH (amount, fromCurrency) {
     if (typeof amount === 'string') {
       fromCurrency = amount.replace(/[^a-zA-Z]/g, '')
-      amount = Number(amount.replace(/\D/g, ''))
+      amount = Number(amount.replace(/[^0-9.]/g, ''))
     }
 
     if (fromCurrency) {
