@@ -60,26 +60,33 @@ schema.methods.bitboxEndpoint = function () {
   return `${(this.params.network === 'main') ? 'https://rest.bitcoin.com/v2/' : 'https://trest.bitcoin.com/v2/'}`
 }
 
+schema.methods.notifyId = function() {
+  return this.state.originalId || this._id
+}
+
 schema.methods.convertCurrencies = function () {
   this.state.baseCurrency = config.baseCurrency
-
+  this.state.totals.baseCurrency = 0
+  this.state.totals.userCurrency = 0
+  
   this.params.outputs.forEach(output => {
+    let outputAmount = rates.convertToBCH(output.amount)
+    
     this.state.outputs.push({
       address: output.address,
       script: output.script,
-      amount: rates.convertToBCH(output.amount)
+      amount: outputAmount
     })
+    
+    this.state.totals.baseCurrency += rates.convertFromBCH(outputAmount, config.baseCurrency).toFixed(2)
+    this.state.totals.userCurrency += rates.convertFromBCH(outputAmount, this.params.userCurrency).toFixed(2)
   })
-
-  this.state.totals.baseCurrency = this.params.outputs.reduce((total, output) => total + rates.convertToBCH(output.amount, config.baseCurrency), 0).toFixed(2)
-  this.state.totals.userCurrency = this.params.outputs.reduce((total, output) => total + rates.convertToBCH(output.amount, this.params.userCurrency), 0).toFixed(2)
 }
 
 schema.pre('save', async function () {
-  // TODO We want to hook into the "created" event but I don't know how
-  if (!this.state.time) {
+  if (this.isNew) {
     this.convertCurrencies()
-    this.state.time = Date.now() / 1000 | 0
+    this.state.time = Date.now() / 1000
     this.state.expires = this.state.time + (this.params.expires || 60 * 15) // Default expiry to 15m
   }
 })

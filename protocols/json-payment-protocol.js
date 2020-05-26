@@ -27,9 +27,9 @@ class JSONPaymentProtocol {
       network: invoiceDB.params.network,
       currency: 'BCH',
       requiredFeePerByte: 0,
-      outputs: invoiceDB.params.outputs,
-      time: new Date().toISOString(),
-      expires: new Date(invoiceDB.params.expires).toISOString(),
+      outputs: invoiceDB.state.outputs,
+      time: new Date(invoiceDB.state.time * 1000).toISOString(),
+      expires: new Date(invoiceDB.state.expires * 1000).toISOString(),
       memo: invoiceDB.params.memo,
       paymentUrl: invoiceDB.paymentURI(),
       paymentId: invoiceDB._id
@@ -40,7 +40,7 @@ class JSONPaymentProtocol {
     invoiceDB.save()
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB._id, 'requested', invoiceDB)
+    webSocket.notify(invoiceDB.notifyId(), 'requested', invoiceDB)
 
     // Send Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.webhooks.requested')) Webhooks.requested(invoiceDB)
@@ -67,7 +67,7 @@ class JSONPaymentProtocol {
     })
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB._id, 'verified', invoiceDB)
+    webSocket.notify(invoiceDB.notifyId(), 'verified', invoiceDB)
 
     // Send Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.webhooks.verified')) Webhooks.verified(invoiceDB)
@@ -109,7 +109,7 @@ class JSONPaymentProtocol {
     })
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB._id, 'broadcasted', invoiceDB)
+    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', invoiceDB)
 
     // Send Broadcasted Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.webhooks.broadcasted')) Webhooks.broadcasted(invoiceDB)

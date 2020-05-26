@@ -21,7 +21,7 @@ class InvoiceRoute {
   constructor () {
     // Define the routes
     router.all('/create', this.allCreate)
-    router.get('/pay/:invoiceId', this.getPay)
+    router.get('/pay/:invoiceId', (req, res) => this.getPay(req, res))
     router.post('/pay/:invoiceId', this.postPay)
     router.get('/state/:invoiceId', this.getState)
 
@@ -90,7 +90,7 @@ class InvoiceRoute {
       }
 
       // Make sure invoice has not expired
-      if (new Date() > new Date(invoiceDB.state.expires)) {
+      if (Date.now() > new Date(invoiceDB.state.expires * 1000)) {
         throw new ExtError('Invoice has expired.', { httpStatusCode: 403 })
       }
 
@@ -119,7 +119,7 @@ class InvoiceRoute {
       res.status(err.httpStatusCode || 500).send({ error: err.message })
 
       // Notify any Websockets that might be listening
-      webSocket.notify(invoiceDB._id, 'error', err.message)
+      webSocket.notify(invoiceDB.notifyId(), 'error', err.message)
 
       // Send Error Webhook Notification (if it is defined)
       if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB)
@@ -170,7 +170,7 @@ class InvoiceRoute {
       res.status(err.httpStatusCode || 500).send({ error: err.message })
 
       // Notify any Websockets that might be listening
-      webSocket.notify(invoiceDB._id, 'error', err.message)
+      webSocket.notify(invoiceDB.notifyId(), 'error', err.message)
 
       // Send Error Webhook Notification (if it is defined)
       if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB)

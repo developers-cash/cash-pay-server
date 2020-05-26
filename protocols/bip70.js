@@ -10,7 +10,7 @@ const webSocket = require('../services/websocket')
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Create the outputs in BIP70 format
-    const outputs = invoiceDB.params.outputs.map(output => {
+    const outputs = invoiceDB.state.outputs.map(output => {
       const builtOutput = Utils.buildOutput(output)
       const bipOutput = new PaymentProtocol().makeOutput()
       bipOutput.set('amount', builtOutput.amount)
@@ -22,8 +22,8 @@ class BIP70 {
     var details = new PaymentProtocol('BCH').makePaymentDetails()
     details.set('network', invoiceDB.params.network)
     details.set('outputs', outputs)
-    details.set('time', invoiceDB.params.time)
-    details.set('expires', invoiceDB.params.expires)
+    details.set('time', invoiceDB.state.time)
+    details.set('expires', invoiceDB.state.expires)
     details.set('payment_url', invoiceDB.paymentURI())
 
     // Optional fields
@@ -51,7 +51,7 @@ class BIP70 {
     invoiceDB.save()
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB._id, 'requested', invoiceDB)
+    webSocket.notify(invoiceDB.notifyId(), 'requested', invoiceDB)
 
     // Send Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.webhooks.requested')) Webhooks.requested(invoiceDB)
@@ -87,7 +87,7 @@ class BIP70 {
     }).send(rawBody)
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB._id, 'broadcasted', invoiceDB)
+    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', invoiceDB)
 
     // Send Broadcasted Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'params.webhooks.broadcasted')) Webhooks.broadcasted(invoiceDB)
