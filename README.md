@@ -70,22 +70,22 @@ DOMAIN=bip70.cash
 
 Run `docker-compose up` to start the Cash Payment Service.
 
-## SSL Certificates
-
-BIP70 depends upon SSL certs of the domain you are using.
-
-The current library only supports DER format. Therefore, you must convert your cert and chain. Example commands given below:
-
-```bash
-openssl x509 -outform der -in cert.pem -out cert.der
-openssl x509 -outform der -in chain.pem -out chain.der
-```
-
 ## Roadmap
+
+### High Priority
+
+- Create error endpoint that can retrieve based on InvoiceID
+  We need this because Webhooks might fail. And if a Webhook fails, generally, it means that the
+  payment has succeeded (user has paid), but the service has not marked that transaction as such.
+  Perhaps a better idea is a Webhook resend queue that attempts resend at incrementing intervals?
+  
+### Medium Priority
 
 - Properly support JSON Payment Protocol
   JSON Payment Protocol currently works on all wallets tested - however, this is still not to spec.
   The only wallet tested that uses JSON Payment Protocol is Edge Wallet which does not yet validate
   signatures.
-- Switch to FloweeJS and allow for Confirmed and Double-Spend Webhooks.
-- Switch from BitBox to LibCash-JS.
+  
+### Low Priority
+
+- Abstract the Engine to an interface (so we can support Flowee, etc)

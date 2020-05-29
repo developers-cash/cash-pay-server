@@ -4,7 +4,7 @@ const PaymentProtocol = require('bitcore-payment-protocol')
 const Utils = require('../libs/utils')
 
 const engine = require('../services/engine')
-const Webhooks = require('../services/webhooks')
+const webhooks = require('../services/webhooks')
 const webSocket = require('../services/websocket')
 
 class BIP70 {
@@ -50,11 +50,11 @@ class BIP70 {
     invoiceDB.state.requested = new Date()
     invoiceDB.save()
 
-    // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'requested', invoiceDB)
-
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.requested')) Webhooks.requested(invoiceDB)
+    if (_.get(invoiceDB, 'params.webhooks.requested')) await webhooks.requested(invoiceDB)
+    
+    // Notify any Websockets that might be listening
+    webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB })
   }
 
   static async paymentAck (req, res, invoiceDB) {
@@ -68,6 +68,9 @@ class BIP70 {
     if (!Utils.matchesInvoice(invoiceDB, transactions)) {
       throw new Error('Transaction does not match invoice')
     }
+    
+    // Send Broadcasted Webhook Notification (if it is defined)
+    if (_.get(invoiceDB, 'params.webhooks.broadcasting')) await webhooks.broadcasted(invoiceDB)
 
     // Send transactions, save txids and set broadcast date
     invoiceDB.state.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
@@ -86,11 +89,11 @@ class BIP70 {
       'Content-Transfer-Encoding': 'binary'
     }).send(rawBody)
 
-    // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', invoiceDB)
-
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) Webhooks.broadcasted(invoiceDB)
+    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) await webhooks.broadcasted(invoiceDB)
+    
+    // Notify any Websockets that might be listening
+    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB })
   }
 }
 

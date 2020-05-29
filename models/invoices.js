@@ -14,6 +14,7 @@ const schema = new Schema({
     expires: Number,
     webhooks: {
       requested: String,
+      broadcasting: String,
       broadcasted: String,
       confirmed: String,
       error: String
@@ -34,11 +35,24 @@ const schema = new Schema({
     requested: Date,
     broadcasted: Date,
     confirmed: Date,
-    txIds: [String]
+    txIds: [String],
+    webhooks: {
+      requested: Date,
+      broadcasted: Date,
+      confirmed: Date
+    }
   }
 }, {
   timestamps: true
 })
+
+schema.methods.payload = function () {
+  
+}
+
+schema.methods.publicPayload = function () {
+
+}
 
 schema.methods.paymentURI = function () {
   return `https://${config.domain}/invoice/pay/${this._id}`

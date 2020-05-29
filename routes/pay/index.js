@@ -20,10 +20,10 @@ const JSONPaymentProtocol = require('../../protocols/json-payment-protocol')
 class InvoiceRoute {
   constructor () {
     // Define the routes
-    router.all('/create', this.allCreate)
+    router.all('/create', (req, res) => this.allCreate(req, res))
     router.get('/pay/:invoiceId', (req, res) => this.getPay(req, res))
-    router.post('/pay/:invoiceId', this.postPay)
-    router.get('/state/:invoiceId', this.getState)
+    router.post('/pay/:invoiceId', (req, res) => this.postPay(req, res))
+    router.get('/state/:invoiceId', (req, res) => this.getState(req, res))
 
     return router
   }
@@ -51,16 +51,16 @@ class InvoiceRoute {
 
       // Send response to client
       res.send({
-        service: {
-          walletURI: invoiceDB.walletURI(),
-          paymentURI: invoiceDB.paymentURI(),
-          stateURI: invoiceDB.stateURI(),
-          webSocketURI: invoiceDB.webSocketURI()
-        },
         invoice: {
           id: invoiceDB._id,
           params: invoiceDB.params,
-          state: invoiceDB.state
+          state: invoiceDB.state,
+          service: {
+            walletURI: invoiceDB.walletURI(),
+            paymentURI: invoiceDB.paymentURI(),
+            stateURI: invoiceDB.stateURI(),
+            webSocketURI: invoiceDB.webSocketURI()
+          }
         }
       })
     } catch (err) {
@@ -84,9 +84,7 @@ class InvoiceRoute {
 
       // If this is a static (paper) invoice...
       if (invoiceDB.params.static) {
-        console.log(invoiceDB)
         invoiceDB = await this._createStaticInvoice(invoiceDB)
-        console.log(invoiceDB)
       }
 
       // Make sure invoice has not expired
@@ -116,13 +114,21 @@ class InvoiceRoute {
       throw new ExtError('Unsupported payment type.', { httpStatusCode: 400 })
     } catch (err) {
       Log.error(req, err)
-      res.status(err.httpStatusCode || 500).send({ error: err.message })
-
-      // Notify any Websockets that might be listening
-      webSocket.notify(invoiceDB.notifyId(), 'error', err.message)
+      
+      try {
+        res.status(err.httpStatusCode || 500).send(err.message)
+      } catch (err) {
+        console.log('Response probably already sent to wallet')
+      }
 
       // Send Error Webhook Notification (if it is defined)
-      if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB)
+      if (_.get(invoiceDB, 'params.webhooks.error')) await Webhooks.error(req, err, invoiceDB)
+      
+      // Notify any Websockets that might be listening
+      webSocket.notify(invoiceDB.notifyId(), 'failed', {
+        message: err.message,
+        details: err.details || {}
+      })
     }
   }
 
@@ -167,13 +173,21 @@ class InvoiceRoute {
       throw new ExtError('Unsupported payment type.', { httpStatusCode: 400 })
     } catch (err) {
       Log.error(req, err)
-      res.status(err.httpStatusCode || 500).send({ error: err.message })
-
-      // Notify any Websockets that might be listening
-      webSocket.notify(invoiceDB.notifyId(), 'error', err.message)
+      
+      try {
+        res.status(err.httpStatusCode || 500).send(err.message)
+      } catch (err) {
+        console.log('Response probably already sent to wallet')
+      }
 
       // Send Error Webhook Notification (if it is defined)
-      if (_.get(invoiceDB, 'params.webhooks.error')) Webhooks.error(req, err, invoiceDB)
+      if (_.get(invoiceDB, 'params.webhooks.error')) await Webhooks.error(req, err, invoiceDB)
+      
+      // Notify any Websockets that might be listening
+      webSocket.notify(invoiceDB.notifyId(), 'failed', {
+        message: err.message,
+        details: err.details || {}
+      })
     }
   }
 

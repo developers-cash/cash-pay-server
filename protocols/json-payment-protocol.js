@@ -1,4 +1,4 @@
-const _ = require('lodash')
+const config = require('../config')
 
 const ExtError = require('../libs/extended-error')
 const Utils = require('../libs/utils')
@@ -6,6 +6,13 @@ const Utils = require('../libs/utils')
 const engine = require('../services/engine')
 const Webhooks = require('../services/webhooks')
 const webSocket = require('../services/websocket')
+
+const _ = require('lodash')
+const LibCash = require('@developers.cash/libcash-js')
+
+// LibCash instance
+const libCash = new LibCash()
+const privateKey = libCash.ECPair.fromWIF(config.wif)
 
 /**
  * JSON Payment Protocol
@@ -17,13 +24,7 @@ class JSONPaymentProtocol {
    * @todo Implement digests, signatures, etc
    */
   static async paymentRequest (req, res, invoiceDB) {
-    // Send the response
-    res.set({
-      digest: 'xxxx', // TODO
-      'x-identity': 'xxxx', // TODO
-      'x-signature-type': 'ECC',
-      'x-signature': 'xxxx' // TODO
-    }).send({
+    let payload = {
       network: invoiceDB.params.network,
       currency: 'BCH',
       requiredFeePerByte: 0,
@@ -33,17 +34,21 @@ class JSONPaymentProtocol {
       memo: invoiceDB.params.memo,
       paymentUrl: invoiceDB.paymentURI(),
       paymentId: invoiceDB._id
-    })
+    }
+    
+    // Send the response
+    res.set(this._buildHeader(payload))
+       .send(payload)
 
     // Set requested date of payment
     invoiceDB.state.requested = new Date()
     invoiceDB.save()
 
-    // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'requested', invoiceDB)
-
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.requested')) Webhooks.requested(invoiceDB)
+    if (_.get(invoiceDB, 'params.webhooks.requested')) await Webhooks.requested(invoiceDB)
+    
+    // Notify any Websockets that might be listening
+    webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB })
   }
 
   /**
@@ -66,11 +71,11 @@ class JSONPaymentProtocol {
       memo: 'Transaction appears valid'
     })
 
-    // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'verified', invoiceDB)
-
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.verified')) Webhooks.verified(invoiceDB)
+    if (_.get(invoiceDB, 'params.webhooks.verified')) await Webhooks.verified(invoiceDB)
+    
+    // Notify any Websockets that might be listening
+    webSocket.notify(invoiceDB.notifyId(), 'verified', { invoice: invoiceDB })
   }
 
   /**
@@ -108,11 +113,22 @@ class JSONPaymentProtocol {
       memo: 'Payment successful'
     })
 
-    // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', invoiceDB)
-
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) Webhooks.broadcasted(invoiceDB)
+    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) await Webhooks.broadcasted(invoiceDB)
+    
+    // Notify any Websockets that might be listening
+    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB })
+  }
+  
+  static _buildHeader(payload) {
+    const digest = Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8')
+    const signature = libCash.ECPair.sign(privateKey, digest)
+    return {
+      digest: digest.toString('base64'),
+      'x-signature-type': 'ECC',
+      'x-identity': config.domain,
+      'x-signature': signature.toDER().toString('base64')
+    }
   }
 }
 

@@ -25,16 +25,13 @@ class WebSocket {
    * the given invoiceId that an event has occurred.
    * @param invoiceId The ID of the invoice
    * @param event The event that was triggered
-   * @param invoice The Invoice data
+   * @param payload The Payload data
    */
-  async notify (invoiceId, event, invoice) {
+  async notify (invoiceId, event, payload) {
     try {
       if (this.subscriptions[invoiceId]) {
         for (const client of this.subscriptions[invoiceId]) {
-          client.emit(event, {
-            event: event,
-            invoice: invoice
-          })
+          client.emit(event, Object.assign({ event: event }, payload))
         }
       }
     } catch (err) {
