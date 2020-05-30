@@ -101,7 +101,7 @@ schema.virtual('service').get(function () {
  * This will increment state.static.quantityUsed on the given Invoice ID
  */
 schema.methods.incrementQuantityUsed = async function () {
-  let originalInvoice = await mongoose.model('Invoice').findById(this.originalId)
+  const originalInvoice = await mongoose.model('Invoice').findById(this.originalId)
   if (!_.get(originalInvoice, 'state.static.quantityUsed')) {
     _.set(originalInvoice, 'state.static.quantityUsed', 0)
   }
@@ -142,7 +142,7 @@ schema.methods.convertCurrencies = function () {
       script: output.script,
       amount: outputAmount
     })
-    
+
     this.details.meta.satoshiTotal += outputAmount
     this.details.meta.baseCurrencyTotal += rates.convertFromBCH(outputAmount, config.baseCurrency).toFixed(2)
     this.details.meta.userCurrencyTotal += rates.convertFromBCH(outputAmount, this.options.userCurrency).toFixed(2)

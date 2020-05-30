@@ -4,7 +4,7 @@ const ExtError = require('../libs/extended-error')
 const Utils = require('../libs/utils')
 
 const engine = require('../services/engine')
-const Webhooks = require('../services/webhooks')
+const webhooks = require('../services/webhooks')
 const webSocket = require('../services/websocket')
 
 const _ = require('lodash')
@@ -45,7 +45,7 @@ class JSONPaymentProtocol {
     invoiceDB.save()
 
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.requested')) await Webhooks.requested(invoiceDB)
+    if (_.get(invoiceDB, 'options.webhooks.requested')) await webhooks.requested(invoiceDB)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB })
@@ -72,7 +72,7 @@ class JSONPaymentProtocol {
     })
 
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.verified')) await Webhooks.verified(invoiceDB)
+    if (_.get(invoiceDB, 'options.webhooks.verified')) await webhooks.verified(invoiceDB)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'verified', { invoice: invoiceDB.payload() })
@@ -97,13 +97,13 @@ class JSONPaymentProtocol {
     if (!Utils.matchesInvoice(invoiceDB, transactions)) {
       throw new Error('Transaction does not match invoice')
     }
-    
+
     // Send Broadcasting Webhook Notification (if it is defined)
     if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasting(invoiceDB)
 
     // Send transactions, save txids and set broadcast date
     invoiceDB.details.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
-    invoiceDB.state.broadcasted = new Date()    
+    invoiceDB.state.broadcasted = new Date()
     invoiceDB.save()
 
     // Send the response
@@ -117,11 +117,11 @@ class JSONPaymentProtocol {
     })
 
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.broadcasted')) await Webhooks.broadcasted(invoiceDB)
+    if (_.get(invoiceDB, 'options.webhooks.broadcasted')) await webhooks.broadcasted(invoiceDB)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
-    
+
     // If it's a static invoice, increment the quantity used on the original
     if (invoiceDB.details.behavior === 'static') {
       invoiceDB.incrementQuantityUsed()

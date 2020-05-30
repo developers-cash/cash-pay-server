@@ -96,7 +96,7 @@ class BIP70 {
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
-    
+
     // If it's a static invoice, increment the quantity used on the original
     if (invoiceDB.details.behavior === 'static') {
       invoiceDB.incrementQuantityUsed()
