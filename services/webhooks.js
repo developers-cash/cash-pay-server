@@ -44,6 +44,14 @@ class Webhooks {
   async requested (invoice) {
     await this.send(invoice.options.webhooks.requested, 'requested', { invoice: invoice.payload(true) })
   }
+  
+  /**
+   * Use to send a webhook when a transaction is broadcasting to the network.
+   * @param invoice The Invoice
+   */
+  async broadcasting (invoice) {
+    await this.send(invoice.options.webhooks.broadcasting, 'broadcasting', { invoice: invoice.payload(true) })
+  }
 
   /**
    * Use to send a webhook when a transactoin is broadcasted to the network.

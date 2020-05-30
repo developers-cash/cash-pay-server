@@ -48,7 +48,7 @@ class Utils {
      */
   static matchesInvoice (invoiceDB, transactions) {
     // Build outputs so that they are in script format
-    const invoiceOutputs = Utils.buildOutputs(invoiceDB.invoice.outputs)
+    const invoiceOutputs = Utils.buildOutputs(invoiceDB.details.outputs)
 
     // Iterate through the transactions and their outputs
     for (const transaction of transactions) {

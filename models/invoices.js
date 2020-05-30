@@ -28,7 +28,7 @@ const schema = new mongoose.Schema({
       validUntil: Date,
       quantity: Number
     },
-    userCurrency: String,
+    userCurrency: { type: String, default: 'USD' },
     webhooks: {
       requested: String,
       broadcasting: String,
@@ -42,7 +42,7 @@ const schema = new mongoose.Schema({
    * This stores the computed invoice information. Fields under here are accessible
    * to the end-user.
    */
-  invoice: {
+  details: {
     behavior: String,
     network: String,
     time: Number,
@@ -51,7 +51,7 @@ const schema = new mongoose.Schema({
     memo: String,
     // refundTo: [{ amount: Number, address: String, script: String }], // TODO
     meta: {
-      satsTotal: Number,
+      satoshiTotal: Number,
       baseCurrency: String,
       baseCurrencyTotal: Number,
       userCurrency: String,
@@ -72,11 +72,11 @@ const schema = new mongoose.Schema({
       confirmed: Date
     },
     static: {
-      quantityUsed: Number,
-      expires: Date
+      quantityUsed: Number
     },
     webhooks: {
       requested: Date,
+      broadcasting: Date,
       broadcasted: Date,
       confirmed: Date
     }
@@ -98,6 +98,18 @@ schema.virtual('service').get(function () {
 })
 
 /**
+ * This will increment state.static.quantityUsed on the given Invoice ID
+ */
+schema.methods.incrementQuantityUsed = async function () {
+  let originalInvoice = await mongoose.model('Invoice').findById(this.originalId)
+  if (!_.get(originalInvoice, 'state.static.quantityUsed')) {
+    _.set(originalInvoice, 'state.static.quantityUsed', 0)
+  }
+  originalInvoice.state.static.quantityUsed++
+  originalInvoice.save()
+}
+
+/**
  * This gets the ID that WebSocket notifications should be sent to
  */
 schema.methods.notifyId = function () {
@@ -117,35 +129,36 @@ schema.methods.payload = function (fullPayload) {
 }
 
 schema.methods.convertCurrencies = function () {
-  this.invoice.meta.satsTotal = 0
-  this.invoice.meta.baseCurrency = config.baseCurrency
-  this.invoice.meta.baseCurrencyTotal = 0
-  this.invoice.meta.userCurrencyTotal = 0
+  this.details.meta.satoshiTotal = 0
+  this.details.meta.baseCurrency = config.baseCurrency
+  this.details.meta.baseCurrencyTotal = 0
+  this.details.meta.userCurrencyTotal = 0
 
   this.options.outputs.forEach(output => {
     const outputAmount = rates.convertToBCH(output.amount)
 
-    this.invoice.outputs.push({
+    this.details.outputs.push({
       address: output.address,
       script: output.script,
       amount: outputAmount
     })
-
-    this.invoice.meta.satsTotal += outputAmount
-    this.invoice.meta.baseCurrencyTotal += rates.convertFromBCH(outputAmount, config.baseCurrency).toFixed(2)
-    this.invoice.meta.userCurrencyTotal += rates.convertFromBCH(outputAmount, this.options.userCurrency).toFixed(2)
+    
+    this.details.meta.satoshiTotal += outputAmount
+    this.details.meta.baseCurrencyTotal += rates.convertFromBCH(outputAmount, config.baseCurrency).toFixed(2)
+    this.details.meta.userCurrencyTotal += rates.convertFromBCH(outputAmount, this.options.userCurrency).toFixed(2)
   })
 }
 
 schema.pre('save', async function () {
   if (this.isNew) {
-    this.invoice.behavior = this.options.behavior
-    this.invoice.network = this.options.network
+    this.details.behavior = this.options.behavior
+    this.details.network = this.options.network
     this.convertCurrencies()
-    this.invoice.memo = this.options.memo
-    this.invoice.time = Date.now() / 1000
-    this.invoice.expires = this.invoice.time + (this.invoice.expires || 60 * 15) // Default expiry to 15m
-    this.invoice.meta.userCurrency = this.options.userCurrency
+    this.details.memo = this.options.memo
+    this.details.time = Date.now() / 1000
+    this.details.expires = this.details.time + (this.details.expires || 60 * 15) // Default expiry to 15m
+    this.details.meta.userCurrency = this.options.userCurrency
+    this.state.static = {}
   }
 })
 

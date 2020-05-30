@@ -10,7 +10,7 @@ const webSocket = require('../services/websocket')
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Create the outputs in BIP70 format
-    const outputs = invoiceDB.invoice.outputs.map(output => {
+    const outputs = invoiceDB.details.outputs.map(output => {
       const builtOutput = Utils.buildOutput(output)
       const bipOutput = new PaymentProtocol().makeOutput()
       bipOutput.set('amount', builtOutput.amount)
@@ -20,15 +20,15 @@ class BIP70 {
 
     // Construct the payment details
     var details = new PaymentProtocol('BCH').makePaymentDetails()
-    details.set('network', invoiceDB.invoice.network)
+    details.set('network', invoiceDB.details.network)
     details.set('outputs', outputs)
-    details.set('time', invoiceDB.invoice.time)
-    details.set('expires', invoiceDB.invoice.expires)
+    details.set('time', invoiceDB.details.time)
+    details.set('expires', invoiceDB.details.expires)
     details.set('payment_url', invoiceDB.service.paymentURI)
 
     // Optional fields
     if (_.get(invoiceDB, 'invoice.memo')) {
-      details.set('memo', invoiceDB.invoice.memo)
+      details.set('memo', invoiceDB.details.memo)
     }
 
     // Form the request
@@ -72,10 +72,10 @@ class BIP70 {
     }
 
     // Send Broadcasting Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasted(invoiceDB)
+    if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasting(invoiceDB)
 
     // Send transactions, save txids and set broadcast date
-    invoiceDB.invoice.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
+    invoiceDB.details.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
     invoiceDB.state.broadcasted = new Date()
     invoiceDB.save()
 
@@ -96,6 +96,11 @@ class BIP70 {
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
+    
+    // If it's a static invoice, increment the quantity used on the original
+    if (invoiceDB.details.behavior === 'static') {
+      invoiceDB.incrementQuantityUsed()
+    }
   }
 }
 

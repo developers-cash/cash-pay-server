@@ -25,13 +25,13 @@ class JSONPaymentProtocol {
    */
   static async paymentRequest (req, res, invoiceDB) {
     const payload = {
-      network: invoiceDB.invoice.network,
+      network: invoiceDB.details.network,
       currency: 'BCH',
       requiredFeePerByte: 0,
-      outputs: invoiceDB.invoice.outputs,
-      time: new Date(invoiceDB.invoice.time * 1000).toISOString(),
-      expires: new Date(invoiceDB.invoice.expires * 1000).toISOString(),
-      memo: invoiceDB.invoice.memo,
+      outputs: invoiceDB.details.outputs,
+      time: new Date(invoiceDB.details.time * 1000).toISOString(),
+      expires: new Date(invoiceDB.details.expires * 1000).toISOString(),
+      memo: invoiceDB.details.memo,
       paymentUrl: invoiceDB.service.paymentURI(),
       paymentId: invoiceDB._id
     }
@@ -97,10 +97,13 @@ class JSONPaymentProtocol {
     if (!Utils.matchesInvoice(invoiceDB, transactions)) {
       throw new Error('Transaction does not match invoice')
     }
+    
+    // Send Broadcasting Webhook Notification (if it is defined)
+    if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasting(invoiceDB)
 
     // Send transactions, save txids and set broadcast date
-    invoiceDB.invoice.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
-    invoiceDB.state.broadcasted = new Date()
+    invoiceDB.details.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
+    invoiceDB.state.broadcasted = new Date()    
     invoiceDB.save()
 
     // Send the response
@@ -118,6 +121,11 @@ class JSONPaymentProtocol {
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
+    
+    // If it's a static invoice, increment the quantity used on the original
+    if (invoiceDB.details.behavior === 'static') {
+      invoiceDB.incrementQuantityUsed()
+    }
   }
 
   static _buildHeader (payload) {
