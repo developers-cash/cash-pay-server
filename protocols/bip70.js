@@ -10,7 +10,7 @@ const webSocket = require('../services/websocket')
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Create the outputs in BIP70 format
-    const outputs = invoiceDB.state.outputs.map(output => {
+    const outputs = invoiceDB.invoice.outputs.map(output => {
       const builtOutput = Utils.buildOutput(output)
       const bipOutput = new PaymentProtocol().makeOutput()
       bipOutput.set('amount', builtOutput.amount)
@@ -20,15 +20,15 @@ class BIP70 {
 
     // Construct the payment details
     var details = new PaymentProtocol('BCH').makePaymentDetails()
-    details.set('network', invoiceDB.params.network)
+    details.set('network', invoiceDB.invoice.network)
     details.set('outputs', outputs)
-    details.set('time', invoiceDB.state.time)
-    details.set('expires', invoiceDB.state.expires)
-    details.set('payment_url', invoiceDB.paymentURI())
+    details.set('time', invoiceDB.invoice.time)
+    details.set('expires', invoiceDB.invoice.expires)
+    details.set('payment_url', invoiceDB.service.paymentURI)
 
     // Optional fields
-    if (_.get(invoiceDB, 'params.memo')) {
-      details.set('memo', invoiceDB.params.memo)
+    if (_.get(invoiceDB, 'invoice.memo')) {
+      details.set('memo', invoiceDB.invoice.memo)
     }
 
     // Form the request
@@ -51,29 +51,31 @@ class BIP70 {
     invoiceDB.save()
 
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.requested')) await webhooks.requested(invoiceDB)
-    
+    if (_.get(invoiceDB, 'options.webhooks.requested')) await webhooks.requested(invoiceDB)
+
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB })
+    webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB.payload() })
   }
 
   static async paymentAck (req, res, invoiceDB) {
     var body = PaymentProtocol.Payment.decode(req.body)
     var payment = new PaymentProtocol().makePayment(body)
     var transactions = payment.get('transactions')
-    // var refundTo = payment.get('refund_to') // UNUSED
-    // var memo = payment.get('memo') // UNUSED
+
+    // Save the refundTo address
+    // invoiceDB.state.refundTo = payment.get('refund_to')
+    console.log(payment.get('refund_to'))
 
     // Verify the constructed transaction matches what's in the invoice
     if (!Utils.matchesInvoice(invoiceDB, transactions)) {
       throw new Error('Transaction does not match invoice')
     }
-    
-    // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.broadcasting')) await webhooks.broadcasted(invoiceDB)
+
+    // Send Broadcasting Webhook Notification (if it is defined)
+    if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasted(invoiceDB)
 
     // Send transactions, save txids and set broadcast date
-    invoiceDB.state.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
+    invoiceDB.invoice.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
     invoiceDB.state.broadcasted = new Date()
     invoiceDB.save()
 
@@ -90,10 +92,10 @@ class BIP70 {
     }).send(rawBody)
 
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'params.webhooks.broadcasted')) await webhooks.broadcasted(invoiceDB)
-    
+    if (_.get(invoiceDB, 'options.webhooks.broadcasted')) await webhooks.broadcasted(invoiceDB)
+
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB })
+    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
   }
 }
 

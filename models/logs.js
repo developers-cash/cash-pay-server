@@ -39,7 +39,7 @@ schema.statics.info = function (req) {
     payload: {
       endpoint: req.originalUrl,
       headers: req.headers,
-      params: req.params,
+      params: req.options,
       query: req.query,
       body: req.body
     }
@@ -54,7 +54,7 @@ schema.statics.error = function (req, err) {
     payload: {
       endpoint: req.originalUrl,
       headers: req.headers,
-      params: req.params,
+      params: req.options,
       query: req.query,
       body: req.body
     },

@@ -16,7 +16,7 @@ const webhooks = require('./services/webhooks')
 const webSocket = require('./services/websocket')
 
 class App {
-  async start() {
+  async start () {
     //
     // Setup MongoDB
     //
@@ -38,7 +38,7 @@ class App {
     } catch (err) {
       console.error(err.message)
     }
-    
+
     //
     // Setup Webhooks Conversion
     //
@@ -91,4 +91,4 @@ class App {
   }
 }
 
-let app = new App().start()
+new App().start()

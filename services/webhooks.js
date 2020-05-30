@@ -15,38 +15,34 @@ const privateKey = libCash.ECPair.fromWIF(config.wif)
  * @todo Refactor this into a service
  */
 class Webhooks {
-  constructor() {
-    
+  async start () {
+    // setInterval(this._retryFailed, 60*60*1000)
+    // this._retryFailed()
   }
-  
-  async start() {
-    //setInterval(this._retryFailed, 60*60*1000)
-    //this._retryFailed()
-  }
-  
-  async send(endpoint, event, payload) {
+
+  async send (endpoint, event, payload) {
     try {
       payload = Object.assign(payload, { event: event })
       return await axios.post(endpoint, payload, {
         headers: this._buildHeader(payload)
       })
-    } catch(err) {
+    } catch (err) {
       console.log(err)
       throw ExtError(`Webhook "${event}" failed with error "${err.response.data || err.message}".`, {
         details: {
           type: `Webhook ${event}`,
           message: err.message
         }
-      });
+      })
     }
   }
-  
+
   /**
    * Use to send a webhook when an invoice is requested.
    * @param invoice The Invoice
    */
   async requested (invoice) {
-    await this.send(invoice.params.webhooks.requested, 'requested', { invoice: invoice });
+    await this.send(invoice.options.webhooks.requested, 'requested', { invoice: invoice.payload(true) })
   }
 
   /**
@@ -54,7 +50,7 @@ class Webhooks {
    * @param invoice The Invoice
    */
   async broadcasted (invoice) {
-    await this.send(invoice.params.webhooks.broadcasted, 'broadcasted', { invoice: invoice });
+    await this.send(invoice.options.webhooks.broadcasted, 'broadcasted', { invoice: invoice.payload(true) })
   }
 
   /**
@@ -62,7 +58,7 @@ class Webhooks {
    * @param invoice The Invoice
    */
   async confirmed (invoice) {
-    await this.send(invoice.params.webhooks.confirmed, 'confirmed', { invoice: invoice });
+    await this.send(invoice.options.webhooks.confirmed, 'confirmed', { invoice: invoice.payload(true) })
   }
 
   /**
@@ -74,11 +70,11 @@ class Webhooks {
   static async error (req, err, invoice) {
     const payload = {
       type: 'error',
-      invoice: invoice,
+      invoice: invoice.payload(true),
       req: {
         headers: req.headers,
         query: req.query,
-        params: req.params,
+        params: req.options,
         body: req.body
       },
       error: {
@@ -87,7 +83,7 @@ class Webhooks {
       }
     }
 
-    return await axios.post(invoice.params.webhooks.error, payload, {
+    return await axios.post(invoice.options.webhooks.error, payload, {
       headers: this._buildHeader(payload)
     })
   }
@@ -102,36 +98,36 @@ class Webhooks {
       'x-signature': signature.toDER().toString('base64')
     }
   }
-  
-  async _retryFailed() {
+
+  async _retryFailed () {
     console.log('here')
-    
+
     let cutOffDate = new Date()
     cutOffDate = cutOffDate.setDate(cutOffDate.getDate() - 3)
-    
+
     //
     // Failed Broadcasted Webhooks
     //
-    let failedBroadcasted = await Invoice.find({
-      'createdAt': { $gte: cutOffDate },
+    const failedBroadcasted = await Invoice.find({
+      createdAt: { $gte: cutOffDate },
       'params.webhooks.broadcasted': { $exists: true },
       'state.webhooks.broadcasted': { $exists: false },
-      'state.webhooks.confirmed': { $exists: false },
+      'state.webhooks.confirmed': { $exists: false }
     })
-    
+
     failedBroadcasted.forEach(invoice => this.broadcasted(invoice))
-    
+
     //
     // Failed Confirmed Webhooks
     //
-    let failedConfirmed = await Invoice.find({
-      'createdAt': { $gte: cutOffDate },
+    const failedConfirmed = await Invoice.find({
+      createdAt: { $gte: cutOffDate },
       'params.webhooks.confirmed': { $exists: true },
-      'state.webhooks.confirmed': { $exists: false },
+      'state.webhooks.confirmed': { $exists: false }
     })
-    
+
     failedConfirmed.forEach(invoice => this.confirmed(invoice))
-    
+
     console.log(failedBroadcasted)
     console.log(failedConfirmed)
   }
