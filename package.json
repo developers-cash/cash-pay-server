@@ -22,7 +22,7 @@
     "electrum-cash": "^1.0.1",
     "express": "~4.16.0",
     "express-ws": "^4.0.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "mongoose": "^5.8.4",
     "socket.io": "^2.3.0"
   },
