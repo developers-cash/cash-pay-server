@@ -1,8 +1,7 @@
 const config = require('../config')
 const ExtError = require('../libs/extended-error')
 
-const Invoice = require('../models/invoices')
-
+const _ = require('lodash')
 const axios = require('axios')
 const LibCash = require('@developers.cash/libcash-js')
 
@@ -16,8 +15,7 @@ const privateKey = libCash.ECPair.fromWIF(config.wif)
  */
 class Webhooks {
   async start () {
-    // setInterval(this._retryFailed, 60*60*1000)
-    // this._retryFailed()
+    console.log('Starting Webhooks Service')
   }
 
   async send (endpoint, event, payload) {
@@ -42,7 +40,7 @@ class Webhooks {
    * @param invoice The Invoice
    */
   async requested (invoice) {
-    await this.send(invoice.options.webhooks.requested, 'requested', { invoice: invoice.payload(true) })
+    await this.send(invoice.webhook, 'requested', { invoice: invoice.payload() })
   }
 
   /**
@@ -50,7 +48,19 @@ class Webhooks {
    * @param invoice The Invoice
    */
   async broadcasting (invoice) {
-    await this.send(invoice.options.webhooks.broadcasting, 'broadcasting', { invoice: invoice.payload(true) })
+    const res = await this.send(invoice.webhook.broadcasting, 'broadcasting', { invoice: invoice.payload() })
+
+    // If JSON is returned, amend invoice
+    if (res.headers['content-type'] === 'application/json') {
+      Object.assign(
+        invoice,
+        _.pick(res.data, ['data', 'privateData'])
+      )
+
+      await invoice.save()
+    }
+
+    return res
   }
 
   /**
@@ -58,7 +68,19 @@ class Webhooks {
    * @param invoice The Invoice
    */
   async broadcasted (invoice) {
-    await this.send(invoice.options.webhooks.broadcasted, 'broadcasted', { invoice: invoice.payload(true) })
+    const res = await this.send(invoice.webhook.broadcasted, 'broadcasted', { invoice: invoice.payload() })
+
+    // If JSON is returned, amend invoice
+    if (res.headers['content-type'] === 'application/json') {
+      Object.assign(
+        invoice,
+        _.pick(res.data, ['data', 'privateData'])
+      )
+
+      await invoice.save()
+    }
+
+    return res
   }
 
   /**
@@ -66,7 +88,7 @@ class Webhooks {
    * @param invoice The Invoice
    */
   async confirmed (invoice) {
-    await this.send(invoice.options.webhooks.confirmed, 'confirmed', { invoice: invoice.payload(true) })
+    await this.send(invoice.webhook.confirmed, 'confirmed', { invoice: invoice.payload() })
   }
 
   /**
@@ -105,39 +127,6 @@ class Webhooks {
       'x-identity': config.domain,
       'x-signature': signature.toDER().toString('base64')
     }
-  }
-
-  async _retryFailed () {
-    console.log('here')
-
-    let cutOffDate = new Date()
-    cutOffDate = cutOffDate.setDate(cutOffDate.getDate() - 3)
-
-    //
-    // Failed Broadcasted Webhooks
-    //
-    const failedBroadcasted = await Invoice.find({
-      createdAt: { $gte: cutOffDate },
-      'params.webhooks.broadcasted': { $exists: true },
-      'state.webhooks.broadcasted': { $exists: false },
-      'state.webhooks.confirmed': { $exists: false }
-    })
-
-    failedBroadcasted.forEach(invoice => this.broadcasted(invoice))
-
-    //
-    // Failed Confirmed Webhooks
-    //
-    const failedConfirmed = await Invoice.find({
-      createdAt: { $gte: cutOffDate },
-      'params.webhooks.confirmed': { $exists: true },
-      'state.webhooks.confirmed': { $exists: false }
-    })
-
-    failedConfirmed.forEach(invoice => this.confirmed(invoice))
-
-    console.log(failedBroadcasted)
-    console.log(failedConfirmed)
   }
 }
 

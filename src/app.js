@@ -65,6 +65,7 @@ class App {
     // Setup ExpressJS middleware, routes, etc
     //
     var app = express()
+    app.enable('trust proxy')
     app.use(cors())
     app.use(bodyParser.json())
     app.use(bodyParser.raw({ type: '*/*' }))

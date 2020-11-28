@@ -9,7 +9,7 @@ const libCash = new LibCash()
 class Utils {
   static buildOutput (output) {
     const built = {
-      amount: output.amount || 0
+      amount: output.amountConverted || 0
     }
 
     // If address is set, create P2PKH script
@@ -25,7 +25,7 @@ class Utils {
         throw new Error('Unsupported address type')
       }
     } else if (output.script) { // If a script is set, convert it to buffer
-      built.script = Buffer.from(output.script, 'hex')
+      built.script = libCash.Script.fromASM(output.script)
     } else { // Otherwise, throw an error
       throw new Error('Output did not contain address or script')
     }
@@ -48,7 +48,7 @@ class Utils {
      */
   static matchesInvoice (invoiceDB, transactions) {
     // Build outputs so that they are in script format
-    const invoiceOutputs = Utils.buildOutputs(invoiceDB.details.outputs)
+    const invoiceOutputs = Utils.buildOutputs(invoiceDB.outputs)
 
     // Iterate through the transactions and their outputs
     for (const transaction of transactions) {
@@ -78,6 +78,8 @@ class Utils {
         }
       }
     }
+
+    console.log(invoiceOutputs)
 
     // If all outputs have been given, return true
     return !invoiceOutputs.length

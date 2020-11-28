@@ -24,6 +24,8 @@ class JSONPaymentProtocol {
    * @todo Implement digests, signatures, etc
    */
   static async paymentRequest (req, res, invoiceDB) {
+    console.log('uh oh!')
+
     const payload = {
       network: invoiceDB.details.network,
       currency: 'BCH',
@@ -45,7 +47,10 @@ class JSONPaymentProtocol {
     invoiceDB.save()
 
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.requested')) await webhooks.requested(invoiceDB)
+    // Send Broadcasted Webhook Notification (if it is defined)
+    if (_.get(invoiceDB, 'options.webhook')) {
+      await webhooks.send(invoiceDB.options.webhook, 'requested', { invoice: invoiceDB.payload(true) })
+    }
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB })
@@ -72,7 +77,9 @@ class JSONPaymentProtocol {
     })
 
     // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.verified')) await webhooks.verified(invoiceDB)
+    if (_.get(invoiceDB, 'options.webhook')) {
+      await webhooks.send(invoiceDB.options.webhook, 'verified', { invoice: invoiceDB.payload(true) })
+    }
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'verified', { invoice: invoiceDB.payload() })
@@ -117,7 +124,9 @@ class JSONPaymentProtocol {
     })
 
     // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.broadcasted')) await webhooks.broadcasted(invoiceDB)
+    if (_.get(invoiceDB, 'options.webhook')) {
+      await webhooks.send(invoiceDB.options.webhook, 'broadcasted', { invoice: invoiceDB.payload(true) })
+    }
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })

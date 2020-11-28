@@ -5,8 +5,6 @@ const config = require('../../config')
 const express = require('express')
 const router = express.Router()
 
-const Log = require('../../models/logs')
-
 const LibCash = require('@developers.cash/libcash-js')
 
 // LibCash instance
@@ -38,7 +36,6 @@ class SigningKeysRoute {
         ]
       })
     } catch (err) {
-      Log.error(req, err)
       return res.status(err.httpStatusCode || 500).send({ error: err.message })
     }
   }

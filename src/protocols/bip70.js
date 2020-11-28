@@ -9,8 +9,11 @@ const webSocket = require('../services/websocket')
 
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
+    // Log the event as a BIP70 Payment Request
+    res.locals.event.type = 'BIP70.PaymentRequest'
+
     // Create the outputs in BIP70 format
-    const outputs = invoiceDB.details.outputs.map(output => {
+    const outputs = invoiceDB.outputs.map(output => {
       const builtOutput = Utils.buildOutput(output)
       const bipOutput = new PaymentProtocol().makeOutput()
       bipOutput.set('amount', builtOutput.amount)
@@ -20,15 +23,15 @@ class BIP70 {
 
     // Construct the payment details
     var details = new PaymentProtocol('BCH').makePaymentDetails()
-    details.set('network', invoiceDB.details.network)
+    details.set('network', invoiceDB.network)
     details.set('outputs', outputs)
-    details.set('time', invoiceDB.details.time)
-    details.set('expires', invoiceDB.details.expires)
+    details.set('time', invoiceDB.time)
+    details.set('expires', invoiceDB.expires)
     details.set('payment_url', invoiceDB.service.paymentURI)
 
     // Optional fields
     if (_.get(invoiceDB, 'invoice.memo')) {
-      details.set('memo', invoiceDB.details.memo)
+      details.set('memo', invoiceDB.memo)
     }
 
     // Form the request
@@ -46,18 +49,17 @@ class BIP70 {
       'Content-Transfer-Encoding': 'binary'
     }).send(rawBody)
 
-    // Set requested date of payment
-    invoiceDB.state.requested = new Date()
-    invoiceDB.save()
-
-    // Send Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.requested')) await webhooks.requested(invoiceDB)
-
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB.payload() })
+    webSocket.notify(invoiceDB._id, 'requested', { invoice: invoiceDB.payloadPublic() })
+
+    res.locals.event.status = 'completed'
   }
 
   static async paymentAck (req, res, invoiceDB) {
+    // Log the event as a BIP70 Payment Request
+    res.locals.event.type = 'BIP70.PaymentAck'
+    res.locals.event.status = 'compiling'
+
     var body = PaymentProtocol.Payment.decode(req.body)
     var payment = new PaymentProtocol().makePayment(body)
     var transactions = payment.get('transactions')
@@ -72,12 +74,22 @@ class BIP70 {
     }
 
     // Send Broadcasting Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasting(invoiceDB)
+    if (invoiceDB.webhook && invoiceDB.webhook.broadcasting) {
+      res.locals.event.status = 'webhook.broadcasting'
+      await webhooks.broadcasting(invoiceDB)
+    }
 
-    // Send transactions, save txids and set broadcast date
-    invoiceDB.details.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
-    invoiceDB.state.broadcasted = new Date()
-    invoiceDB.save()
+    // Send transactions, save txids
+    res.locals.event.status = 'broadcasting'
+    invoiceDB.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
+    invoiceDB.broadcasted = new Date()
+    await invoiceDB.save()
+
+    // Send Broadcasted Webhook Notification (if it is defined)
+    if (invoiceDB.webhook && invoiceDB.webhook.broadcasted) {
+      res.locals.event.status = 'webhook.broadcasted'
+      await webhooks.broadcasted(invoiceDB)
+    }
 
     // Make a payment acknowledgement
     var ack = new PaymentProtocol().makePaymentACK()
@@ -91,16 +103,10 @@ class BIP70 {
       'Content-Transfer-Encoding': 'binary'
     }).send(rawBody)
 
-    // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.broadcasted')) await webhooks.broadcasted(invoiceDB)
-
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
+    webSocket.notify(invoiceDB._id, 'broadcasted', { invoice: invoiceDB.payloadPublic() })
 
-    // If it's a static invoice, increment the quantity used on the original
-    if (invoiceDB.details.behavior === 'static') {
-      invoiceDB.incrementQuantityUsed()
-    }
+    res.locals.event.status = 'completed'
   }
 }
 

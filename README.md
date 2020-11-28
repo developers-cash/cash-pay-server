@@ -1,8 +1,6 @@
 # Cash Payment Service
 
-A Bitcoin Cash BIP70 and JSON Payment Protocol microservice.
-
-This can be configured as a microservice used to mediate BIP70 and JSON Payment Protocol requests.
+A self-hostable Bitcoin Cash BIP70 and JSON Payment Protocol service.
 
 ## Setup Example
 
@@ -69,6 +67,17 @@ DOMAIN=bip70.cash
 ```
 
 Run `docker-compose up` to start the Cash Payment Service.
+
+# API Key Whitelisting
+
+If the service is not intended to be open to the public, API Keys can be whitelisted by using a
+comma-separated environment variable.
+
+```sh
+API_KEYS=someAPIKeyHere,someOtherAPIKeyHere
+```
+
+Any requests to the create invoice endpoint will be rejected if they are not in this list.
 
 ## Roadmap
 

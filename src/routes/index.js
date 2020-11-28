@@ -8,6 +8,7 @@ class RootRoute {
     router.get('/', (req, res) => { res.send({ status: 'OK' }) })
     router.use('/invoice', require('./invoice'))
     router.use('/signingKeys', require('./signing-keys'))
+    router.use('/admin', require('./admin'))
 
     return router
   }

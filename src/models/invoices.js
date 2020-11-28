@@ -6,81 +6,45 @@ const _ = require('lodash')
 const mongoose = require('mongoose')
 
 const schema = new mongoose.Schema({
-  /**
-   * The id that will be used for Websocket event notifications
-   */
-  originalId: { type: String },
-
-  /**
-   * These fields should never be public. If you want to add a field that should be
-   * exposed to the end-user, copy them to another field in the create hook
-   */
-  options: {
-    behavior: { type: String, default: 'normal' },
-    network: { type: String, default: 'main' },
-    outputs: [{ amount: String, address: String, script: String }],
-    expires: Number,
-    memo: String,
-    data: String,
-    merchantKey: { type: String, index: true },
-    privateData: String,
-    static: {
-      validUntil: Date,
-      quantity: Number
-    },
-    userCurrency: { type: String, default: 'USD' },
-    webhooks: {
-      requested: String,
-      broadcasting: String,
-      broadcasted: String,
-      confirmed: String,
-      error: String
-    }
+  apiKey: { type: String, index: true },
+  network: { type: String, default: 'main' },
+  outputs: [{
+    amount: String,
+    amountConverted: Number,
+    address: String,
+    script: String
+  }],
+  time: { type: Number, default: () => new Date().getTime() / 1000 },
+  expires: Number,
+  memo: String,
+  merchantData: String,
+  data: String,
+  privateData: String,
+  userCurrency: { type: String, default: 'USD' },
+  webhook: {
+    broadcasting: String,
+    broadcasted: String,
+    confirmed: String
   },
-
-  /**
-   * This stores the computed invoice information. Fields under here are accessible
-   * to the end-user.
-   */
-  details: {
-    behavior: String,
-    network: String,
-    time: Number,
-    expires: Number,
-    outputs: [{ amount: Number, address: String, script: String }],
-    memo: String,
-    // refundTo: [{ amount: Number, address: String, script: String }], // TODO
-    meta: {
-      satoshiTotal: Number,
-      baseCurrency: String,
-      baseCurrencyTotal: Number,
-      userCurrency: String,
-      userCurrencyTotal: Number
-    },
-    txIds: [String]
+  totals: {
+    satoshiTotal: Number,
+    baseCurrency: String,
+    baseCurrencyTotal: Number,
+    userCurrency: String,
+    userCurrencyTotal: Number
   },
-
-  /**
-   * This stores state information. Fields under here will be accessible to the
-   * end-user.
-   */
-  state: {
-    events: {
-      requested: Date,
-      broadcasting: Date,
-      broadcasted: Date,
-      confirmed: Date
-    },
-    static: {
-      quantityUsed: Number
-    },
-    webhooks: {
-      requested: Date,
-      broadcasting: Date,
-      broadcasted: Date,
-      confirmed: Date
-    }
-  }
+  broadcasted: Date,
+  confirmed: Number,
+  txIds: [String],
+  events: [{
+    time: { type: Date, default: () => new Date() },
+    type: { type: String, index: true },
+    status: { type: String, index: true },
+    message: String,
+    userAgent: String,
+    requestedWith: String,
+    ip: String
+  }]
 }, {
   timestamps: true
 })
@@ -91,74 +55,48 @@ const schema = new mongoose.Schema({
 schema.virtual('service').get(function () {
   return {
     paymentURI: `https://${config.domain}/invoice/pay/${this._id}`,
-    stateURI: `https://${config.domain}/invoice/state/${this._id}`,
-    walletURI: `${(this.options.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this._id}`,
+    walletURI: `${(this.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this._id}`,
     webSocketURI: `wss://${config.domain}`
   }
 })
 
-/**
- * This will increment state.static.quantityUsed on the given Invoice ID
- */
-schema.methods.incrementQuantityUsed = async function () {
-  const originalInvoice = await mongoose.model('Invoice').findById(this.originalId)
-  if (!_.get(originalInvoice, 'state.static.quantityUsed')) {
-    _.set(originalInvoice, 'state.static.quantityUsed', 0)
-  }
-  originalInvoice.state.static.quantityUsed++
-  originalInvoice.save()
+schema.methods.payloadPublic = function () {
+  return _.omit(
+    this.toObject({ virtuals: true }),
+    'apiKey',
+    'privateData',
+    'webhook',
+    'events'
+  )
 }
 
-/**
- * This gets the ID that WebSocket notifications should be sent to
- */
-schema.methods.notifyId = function () {
-  return this.originalId || this._id
-}
-
-/**
- * This returns the Invoice payload as an object.
- * @param fullPayload If true, everything will be returned
- */
-schema.methods.payload = function (fullPayload) {
-  if (!fullPayload) {
-    return _.omit(this.toObject({ virtuals: true }), 'options')
-  }
-
+schema.methods.payload = function () {
   return this.toObject({ virtuals: true })
 }
 
 schema.methods.convertCurrencies = function () {
-  this.details.meta.satoshiTotal = 0
-  this.details.meta.baseCurrency = config.baseCurrency
-  this.details.meta.baseCurrencyTotal = 0
-  this.details.meta.userCurrencyTotal = 0
+  this.totals.satoshiTotal = 0
+  this.totals.baseCurrency = config.baseCurrency
+  this.totals.baseCurrencyTotal = 0
+  this.totals.userCurrencyTotal = 0
 
-  this.options.outputs.forEach(output => {
-    const outputAmount = rates.convertToBCH(output.amount)
+  this.outputs.forEach(output => {
+    output.amountConverted = rates.convertToBCH(output.amount)
 
-    this.details.outputs.push({
-      address: output.address,
-      script: output.script,
-      amount: outputAmount
-    })
-
-    this.details.meta.satoshiTotal += outputAmount
-    this.details.meta.baseCurrencyTotal += rates.convertFromBCH(outputAmount, config.baseCurrency).toFixed(2)
-    this.details.meta.userCurrencyTotal += rates.convertFromBCH(outputAmount, this.options.userCurrency).toFixed(2)
+    this.totals.satoshiTotal += output.amountConverted
+    this.totals.baseCurrencyTotal += rates.convertFromBCH(output.amountConverted, config.baseCurrency).toFixed(2)
+    this.totals.userCurrencyTotal += rates.convertFromBCH(output.amountConverted, this.userCurrency).toFixed(2)
   })
+}
+
+schema.methods.hasEvent = function (eventType) {
+  return this.events.find((event) => event.type === eventType && event.result === 'SUCCESS')
 }
 
 schema.pre('save', async function () {
   if (this.isNew) {
-    this.details.behavior = this.options.behavior
-    this.details.network = this.options.network
     this.convertCurrencies()
-    this.details.memo = this.options.memo
-    this.details.time = Date.now() / 1000
-    this.details.expires = this.details.time + (this.details.expires || 60 * 15) // Default expiry to 15m
-    this.details.meta.userCurrency = this.options.userCurrency
-    this.state.static = {}
+    this.expires = this.time + (this.expires || 60 * 15) // Default expiry to 15m
   }
 })
 
