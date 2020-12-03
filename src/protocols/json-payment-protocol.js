@@ -24,36 +24,38 @@ class JSONPaymentProtocol {
    * @todo Implement digests, signatures, etc
    */
   static async paymentRequest (req, res, invoiceDB) {
-    console.log('uh oh!')
+    // Log the event as a JPP Payment Request
+    res.locals.event.type = 'JPP.PaymentRequest'
 
+    // Compile outputs into friendly form for JPP
+    let outputs = invoiceDB.outputs.map(output => { return {
+      address: output.address,
+      amount: output.amountConverted
+    }})
+    
     const payload = {
-      network: invoiceDB.details.network,
+      network: invoiceDB.network,
       currency: 'BCH',
       requiredFeePerByte: 0,
-      outputs: invoiceDB.details.outputs,
-      time: new Date(invoiceDB.details.time * 1000).toISOString(),
-      expires: new Date(invoiceDB.details.expires * 1000).toISOString(),
-      memo: invoiceDB.details.memo,
-      paymentUrl: invoiceDB.service.paymentURI(),
-      paymentId: invoiceDB._id
+      outputs: outputs,
+      time: new Date(invoiceDB.time * 1000).toISOString(),
+      expires: new Date(invoiceDB.expires * 1000).toISOString(),
+      memo: invoiceDB.memo || 'Confirm Payment',
+      paymentUrl: invoiceDB.service.paymentURI,
+      paymentId: invoiceDB.id
     }
-
+    
+    // Save payload for debugging
+    res.locals.event.payload = JSON.stringify(payload)
+    
     // Send the response
     res.set(this._buildHeader(payload))
       .send(payload)
 
-    // Set requested date of payment
-    invoiceDB.state.requested = new Date()
-    invoiceDB.save()
-
-    // Send Webhook Notification (if it is defined)
-    // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhook')) {
-      await webhooks.send(invoiceDB.options.webhook, 'requested', { invoice: invoiceDB.payload(true) })
-    }
-
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'requested', { invoice: invoiceDB })
+    webSocket.notify(invoiceDB._id, 'requested', { invoice: invoiceDB.payloadPublic() })
+    
+    res.locals.event.status = 'completed'
   }
 
   /**
@@ -61,6 +63,9 @@ class JSONPaymentProtocol {
    * @todo Implement digests, signatures, etc
    */
   static async paymentVerification (req, res, invoiceDB) {
+    // Log the event as a JPP Payment Request
+    res.locals.event.type = 'JPP.PaymentVerification'
+    
     const body = JSON.parse(req.body)
 
     // Throw error if it's not the BCH chain
@@ -82,7 +87,7 @@ class JSONPaymentProtocol {
     }
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'verified', { invoice: invoiceDB.payload() })
+    webSocket.notify(invoiceDB._id, 'verified', { invoice: invoiceDB.payload() })
   }
 
   /**
@@ -90,6 +95,10 @@ class JSONPaymentProtocol {
    * @todo implement (properly)
    */
   static async payment (req, res, invoiceDB) {
+    // Log the event as a BIP70 Payment Request
+    res.locals.event.type = 'JPP.PaymentAck'
+    res.locals.event.status = 'compiling'
+    
     const body = JSON.parse(req.body)
 
     // Throw error if it's not the BCH chain
@@ -106,35 +115,41 @@ class JSONPaymentProtocol {
     }
 
     // Send Broadcasting Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhooks.broadcasting')) await webhooks.broadcasting(invoiceDB)
+    if (invoiceDB.webhook && invoiceDB.webhook.broadcasting) {
+      res.locals.event.status = 'webhook.broadcasting'
+      await webhooks.broadcasting(invoiceDB)
+    }
 
     // Send transactions, save txids and set broadcast date
-    invoiceDB.details.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
-    invoiceDB.state.broadcasted = new Date()
-    invoiceDB.save()
-
-    // Send the response
-    res.set({
-      'Content-Type': 'application/payment-ack'
-    }).send({
+    res.locals.event.status = 'broadcasting'
+    invoiceDB.txIds = await engine.broadcastTx(transactions.map(tx => tx.toString('hex')))
+    invoiceDB.broadcasted = new Date()
+    await invoiceDB.save()
+    
+    // Send Broadcasted Webhook Notification (if it is defined)
+    if (invoiceDB.webhook && invoiceDB.webhook.broadcasted) {
+      res.locals.event.status = 'webhook.broadcasted'
+      await webhooks.broadcasted(invoiceDB)
+    }
+    
+    // Compile the payload
+    const payload = {
       payment: {
         transactions: body.transactions
       },
       memo: 'Payment successful'
-    })
-
-    // Send Broadcasted Webhook Notification (if it is defined)
-    if (_.get(invoiceDB, 'options.webhook')) {
-      await webhooks.send(invoiceDB.options.webhook, 'broadcasted', { invoice: invoiceDB.payload(true) })
     }
+    res.locals.event.payload = JSON.stringify(payload)
+
+    // Send the response
+    res.set({
+      'Content-Type': 'application/payment-ack'
+    }).send(payload)
 
     // Notify any Websockets that might be listening
-    webSocket.notify(invoiceDB.notifyId(), 'broadcasted', { invoice: invoiceDB.payload() })
-
-    // If it's a static invoice, increment the quantity used on the original
-    if (invoiceDB.details.behavior === 'static') {
-      invoiceDB.incrementQuantityUsed()
-    }
+    webSocket.notify(invoiceDB._id, 'broadcasted', { invoice: invoiceDB.payloadPublic() })
+    
+    res.locals.event.status = 'completed'
   }
 
   static _buildHeader (payload) {

@@ -21,12 +21,19 @@ class Webhooks {
   async send (endpoint, event, payload) {
     try {
       payload = Object.assign(payload, { event: event })
-      return await axios.post(endpoint, payload, {
+      const res = await axios.post(endpoint, payload, {
         headers: this._buildHeader(payload)
       })
+      
+      // Throw an error if response code is not 200
+      if (res.status !== 200) {
+        throw ExtError(`Received ${res.status} response from endpoint`)
+      }
+      
+      return res
     } catch (err) {
       console.log(err)
-      throw ExtError(`Webhook "${event}" failed with error "${err.response.data || err.message}".`, {
+      throw ExtError(`Webhook "${event}" failed with error "${err.message}".`, {
         details: {
           type: `Webhook ${event}`,
           message: err.message

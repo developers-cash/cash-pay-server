@@ -1,6 +1,14 @@
 'use strict'
 
+const config = require('../config')
+
 const SocketIO = require('socket.io')
+
+const LibCash = require('@developers.cash/libcash-js')
+
+// LibCash instance
+const libCash = new LibCash()
+const privateKey = libCash.ECPair.fromWIF(config.wif)
 
 /**
  * WebSocket Library for Notifying Clients of Payment Events
@@ -25,13 +33,19 @@ class WebSocket {
    * the given invoiceId that an event has occurred.
    * @param invoiceId The ID of the invoice
    * @param event The event that was triggered
-   * @param payload The Payload data
+   * @param invoice The Invoice data
    */
-  async notify (invoiceId, event, payload) {
+  async notify (invoiceId, event, invoice) {
     try {
       if (this.subscriptions[invoiceId]) {
+        // Compile payload
+        var payload = Object.assign({ event: event }, invoice)
+        
+        // Append signature
+        payload = Object.assign(payload, { signature: this._buildSignature(payload) })
+        
         for (const client of this.subscriptions[invoiceId]) {
-          client.emit(event, Object.assign({ event: event }, payload))
+          client.emit(event, payload)
         }
       }
     } catch (err) {
@@ -86,6 +100,17 @@ class WebSocket {
     return client.emit('unsubscribed', {
       message: `Unsubscribed from ${msg.invoiceId}`
     })
+  }
+  
+  _buildSignature (payload) {
+    const digest = Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8')
+    const signature = libCash.ECPair.sign(privateKey, digest)
+    return {
+      digest: digest.toString('base64'),
+      signatureType: 'ECC',
+      identity: config.domain,
+      signature: signature.toDER().toString('base64')
+    }
   }
 }
 

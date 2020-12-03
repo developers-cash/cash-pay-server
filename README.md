@@ -76,25 +76,3 @@ comma-separated environment variable.
 ```sh
 API_KEYS=someAPIKeyHere,someOtherAPIKeyHere
 ```
-
-Any requests to the create invoice endpoint will be rejected if they are not in this list.
-
-## Roadmap
-
-### High Priority
-
-- Create error endpoint that can retrieve based on InvoiceID
-  We need this because Webhooks might fail. And if a Webhook fails, generally, it means that the
-  payment has succeeded (user has paid), but the service has not marked that transaction as such.
-  Perhaps a better idea is a Webhook resend queue that attempts resend at incrementing intervals?
-  
-### Medium Priority
-
-- Properly support JSON Payment Protocol
-  JSON Payment Protocol currently works on all wallets tested - however, this is still not to spec.
-  The only wallet tested that uses JSON Payment Protocol is Edge Wallet which does not yet validate
-  signatures.
-  
-### Low Priority
-
-- Abstract the Engine to an interface (so we can support Flowee, etc)

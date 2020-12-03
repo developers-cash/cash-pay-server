@@ -11,7 +11,7 @@ class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Log the event as a BIP70 Payment Request
     res.locals.event.type = 'BIP70.PaymentRequest'
-
+    
     // Create the outputs in BIP70 format
     const outputs = invoiceDB.outputs.map(output => {
       const builtOutput = Utils.buildOutput(output)

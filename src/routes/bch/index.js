@@ -17,6 +17,9 @@ const webSocket = require('../../services/websocket')
 const BIP70 = require('../../protocols/bip70')
 const JSONPaymentProtocol = require('../../protocols/json-payment-protocol')
 
+// Validation
+var validate = require('jsonschema').validate;
+
 class InvoiceRoute {
   constructor () {
     // Define the routes
@@ -29,12 +32,15 @@ class InvoiceRoute {
 
   async postCreate (req, res) {
     try {
-      // Make sure that at least one output script exisis
-      if (!req.body.outputs.length) {
-        throw new ExtError('You must provide at least one output.', { httpStatusCode: 400 })
+      // Validate the payload...
+      try {
+        validate(req.body, this._onCreateSchema(), {
+          throwFirst: true
+        })
+      } catch (err) {
+        const firstError = err.errors[0]
+        throw new ExtError(`${firstError.property} ${firstError.message}`, 400)
       }
-
-      // TODO Validate
 
       // Create the payment in MongoDB
       const invoiceDB = await Invoice.create(req.body)
@@ -43,7 +49,7 @@ class InvoiceRoute {
       res.send(invoiceDB.payload())
     } catch (err) {
       console.log(err)
-      return res.status(err.httpStatusCode || 500).send({ error: err.message })
+      return res.status(err.httpStatusCode || 500).send(err.message)
     }
   }
 
@@ -183,6 +189,42 @@ class InvoiceRoute {
       userAgent: req.get('user-agent'),
       requestedWith: req.get('x-requested-with'),
       ip: req.ip
+    }
+  }
+  
+  _onCreateSchema () {
+    return {
+      type: 'object',
+      properties: {
+        apiKey: { type: "string", maxLength: 128 },
+        network: { type: "string", maxlength: 8 },
+        outputs: {
+          type: "array",
+          items: {
+            properties: {
+              "amount": { type: ["integer", "string"] },
+              "address": { type: "string" },
+              "script": { type: "string" }
+            },
+            additionalProperties: false
+          }
+        },
+        expires: { type: "integer", minimum: 30, maximum: 24*60*60 },
+        merchantData: { type: "string", maxLength: 2048 },
+        data: { type: "string", maxLength: 2048 },
+        privateData: { type: "string", maxLength: 2048 },
+        userCurrency: { type: "string", maxLength: 8 },
+        webhook: {
+          type: 'object',
+          properties: {
+            broadcasting: { type: "string" },
+            broadcasted: { type: "string" },
+            confirmed: { type: "string" }
+          },
+          additionalProperties: false
+        }
+      },
+      additionalProperties: false
     }
   }
 }

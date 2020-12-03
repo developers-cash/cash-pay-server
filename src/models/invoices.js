@@ -43,7 +43,8 @@ const schema = new mongoose.Schema({
     message: String,
     userAgent: String,
     requestedWith: String,
-    ip: String
+    ip: String,
+    payload: String
   }]
 }, {
   timestamps: true
@@ -54,8 +55,8 @@ const schema = new mongoose.Schema({
  */
 schema.virtual('service').get(function () {
   return {
-    paymentURI: `https://${config.domain}/invoice/pay/${this._id}`,
-    walletURI: `${(this.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this._id}`,
+    paymentURI: `https://${config.domain}/bch/pay/${this._id}`,
+    walletURI: `${(this.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/bch/pay/${this._id}`,
     webSocketURI: `wss://${config.domain}`
   }
 })

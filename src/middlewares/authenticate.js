@@ -6,7 +6,7 @@ const config = require('../config')
 const ExtError = require('../libs/extended-error')
 
 /**
- * Admin routes for Invoice Management
+ * Middleware for whitelisting API Keys
  */
 class Authenticate {
   /**

@@ -84,7 +84,6 @@ class Engine {
 
         for (let j = 0; j < invoice.txIds.length; j++) {
           const tx = await this.electrum.request('blockchain.transaction.get', invoice.txIds[j], true)
-          console.log(tx)
           if (!tx.confirmations) {
             confirmed = false
             break
