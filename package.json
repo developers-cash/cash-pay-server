@@ -13,28 +13,28 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
-    "@developers.cash/libcash-js": "^0.9.5",
+    "@developers.cash/libcash-js": "^0.9.10",
     "axios": "^0.19.0",
     "bitcore-payment-protocol": "^8.1.1",
     "body-parser": "^1.19.0",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
-    "electrum-cash": "^2.0.2",
+    "electrum-cash": "^2.0.6",
     "express": "~4.16.0",
     "express-ws": "^4.0.0",
     "jsonschema": "^1.4.0",
     "lodash": "^4.17.20",
-    "mongoose": "^5.10.2",
+    "mongoose": "^5.11.3",
     "socket.io": "^2.3.0",
-    "uuid": "^8.3.0"
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "eslint": "^7.8.0",
+    "eslint": "^7.14.0",
     "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "nodemon": "^2.0.2"
+    "eslint-plugin-standard": "^4.1.0",
+    "nodemon": "^2.0.6"
   }
 }
