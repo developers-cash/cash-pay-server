@@ -24,12 +24,12 @@ class Webhooks {
       const res = await axios.post(endpoint, payload, {
         headers: this._buildHeader(payload)
       })
-      
+
       // Throw an error if response code is not 200
       if (res.status !== 200) {
         throw ExtError(`Received ${res.status} response from endpoint`)
       }
-      
+
       return res
     } catch (err) {
       console.log(err)

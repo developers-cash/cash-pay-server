@@ -18,7 +18,7 @@ const BIP70 = require('../../protocols/bip70')
 const JSONPaymentProtocol = require('../../protocols/json-payment-protocol')
 
 // Validation
-var validate = require('jsonschema').validate;
+var validate = require('jsonschema').validate
 
 class InvoiceRoute {
   constructor () {
@@ -200,35 +200,35 @@ class InvoiceRoute {
       }
     }
   }
-  
+
   _onCreateSchema () {
     return {
       type: 'object',
       properties: {
-        apiKey: { type: "string", maxLength: 128 },
-        network: { type: "string", maxlength: 8 },
+        apiKey: { type: 'string', maxLength: 128 },
+        network: { type: 'string', maxlength: 8 },
         outputs: {
-          type: "array",
+          type: 'array',
           items: {
             properties: {
-              "amount": { type: ["integer", "string"] },
-              "address": { type: "string" },
-              "script": { type: "string" }
+              amount: { type: ['integer', 'string'] },
+              address: { type: 'string' },
+              script: { type: 'string' }
             },
             additionalProperties: false
           }
         },
-        expires: { type: "integer", minimum: 30, maximum: 24*60*60 },
-        merchantData: { type: "string", maxLength: 2048 },
-        data: { type: "string", maxLength: 2048 },
-        privateData: { type: "string", maxLength: 2048 },
-        userCurrency: { type: "string", maxLength: 8 },
+        expires: { type: 'integer', minimum: 30, maximum: 24 * 60 * 60 },
+        merchantData: { type: 'string', maxLength: 2048 },
+        data: { type: 'string', maxLength: 2048 },
+        privateData: { type: 'string', maxLength: 2048 },
+        userCurrency: { type: 'string', maxLength: 8 },
         webhook: {
           type: 'object',
           properties: {
-            broadcasting: { type: "string" },
-            broadcasted: { type: "string" },
-            confirmed: { type: "string" }
+            broadcasting: { type: 'string' },
+            broadcasted: { type: 'string' },
+            confirmed: { type: 'string' }
           },
           additionalProperties: false
         }

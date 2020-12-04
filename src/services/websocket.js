@@ -40,10 +40,10 @@ class WebSocket {
       if (this.subscriptions[invoiceId]) {
         // Compile payload
         var payload = Object.assign({ event: event }, invoice)
-        
+
         // Append signature
         payload = Object.assign(payload, { signature: this._buildSignature(payload) })
-        
+
         for (const client of this.subscriptions[invoiceId]) {
           client.emit(event, payload)
         }
@@ -101,7 +101,7 @@ class WebSocket {
       message: `Unsubscribed from ${msg.invoiceId}`
     })
   }
-  
+
   _buildSignature (payload) {
     const digest = Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8')
     const signature = libCash.ECPair.sign(privateKey, digest)

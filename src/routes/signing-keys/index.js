@@ -12,8 +12,6 @@ const libCash = new LibCash()
 const privateKey = libCash.ECPair.fromWIF(config.wif)
 const publicKey = libCash.ECPair.toPublicKey(privateKey)
 
-const _ = require('lodash')
-
 class SigningKeysRoute {
   constructor () {
     router.all('/paymentProtocol.json', this.allPaymentProtocol)
