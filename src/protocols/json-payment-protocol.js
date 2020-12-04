@@ -33,6 +33,7 @@ class JSONPaymentProtocol {
       amount: output.amountConverted
     }})
     
+    // Compile headers and payload    
     const payload = {
       network: invoiceDB.network,
       currency: 'BCH',
@@ -45,11 +46,14 @@ class JSONPaymentProtocol {
       paymentId: invoiceDB.id
     }
     
+    const headers = this._buildHeader(payload)
+    
     // Save payload for debugging
-    res.locals.event.payload = JSON.stringify(payload)
+    res.locals.event.res.headers = JSON.stringify(headers)
+    res.locals.event.res.body = JSON.stringify(payload)
     
     // Send the response
-    res.set(this._buildHeader(payload))
+    res.set(headers)
       .send(payload)
 
     // Notify any Websockets that might be listening
@@ -132,19 +136,25 @@ class JSONPaymentProtocol {
       await webhooks.broadcasted(invoiceDB)
     }
     
-    // Compile the payload
+    // Compile the headers and payload
     const payload = {
       payment: {
         transactions: body.transactions
       },
       memo: 'Payment successful'
     }
-    res.locals.event.payload = JSON.stringify(payload)
+    
+    const headers = {
+      'Content-Type': 'application/payment-ack'
+    }
+    
+    // Set in the event
+    res.locals.event.res.headers = JSON.stringify(headers)
+    res.locals.event.res.body = JSON.stringify(payload)
 
     // Send the response
-    res.set({
-      'Content-Type': 'application/payment-ack'
-    }).send(payload)
+    res.set(headers)
+       .send(payload)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'broadcasted', { invoice: invoiceDB.payloadPublic() })

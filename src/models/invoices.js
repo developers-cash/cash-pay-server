@@ -44,7 +44,15 @@ const schema = new mongoose.Schema({
     userAgent: String,
     requestedWith: String,
     ip: String,
-    payload: String
+    req: {
+      method: String,
+      headers: String,
+      body: String
+    },
+    res: {
+      headers: String,
+      body: String
+    }
   }]
 }, {
   timestamps: true

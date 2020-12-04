@@ -39,15 +39,21 @@ class BIP70 {
     request.set('payment_details_version', 1)
     request.set('serialized_payment_details', details.serialize())
 
-    // Serialize the request
-    var rawBody = request.serialize()
-
-    // Set output headers
-    res.set({
+    // Compile headers and payload
+    const payload = request.serialize()
+    const headers = {
       'Content-Type': PaymentProtocol.LEGACY_PAYMENT.BCH.REQUEST_CONTENT_TYPE,
       'Content-Length': request.length,
       'Content-Transfer-Encoding': 'binary'
-    }).send(rawBody)
+    }
+    
+    // Save payload for debugging
+    res.locals.event.res.headers = JSON.stringify(headers)
+    res.locals.event.res.body = payload.toString('base64')
+
+    // Set output headers
+    res.set(headers)
+       .send(payload)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'requested', { invoice: invoiceDB.payloadPublic() })
@@ -66,7 +72,7 @@ class BIP70 {
 
     // Save the refundTo address
     // invoiceDB.state.refundTo = payment.get('refund_to')
-    console.log(payment.get('refund_to'))
+    // console.log(payment.get('refund_to'))
 
     // Verify the constructed transaction matches what's in the invoice
     if (!Utils.matchesInvoice(invoiceDB, transactions)) {
@@ -95,13 +101,21 @@ class BIP70 {
     var ack = new PaymentProtocol().makePaymentACK()
     ack.set('payment', payment.message)
     ack.set('memo', 'Payment successful.')
-    var rawBody = ack.serialize()
 
-    res.set({
+    // Compile Headers and payload
+    const payload = ack.serialize()
+    const headers = {
       'Content-Type': PaymentProtocol.LEGACY_PAYMENT.BCH.PAYMENT_ACK_CONTENT_TYPE,
-      'Content-Length': rawBody.length,
+      'Content-Length': payload.length,
       'Content-Transfer-Encoding': 'binary'
-    }).send(rawBody)
+    }
+    
+    // Save payload for debugging
+    res.locals.event.res.headers = JSON.stringify(headers)
+    res.locals.event.res.body = payload.toString('base64')
+    
+    res.set(headers)
+       .send(payload)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'broadcasted', { invoice: invoiceDB.payloadPublic() })

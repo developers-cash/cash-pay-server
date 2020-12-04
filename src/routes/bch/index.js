@@ -188,7 +188,16 @@ class InvoiceRoute {
     res.locals.event = {
       userAgent: req.get('user-agent'),
       requestedWith: req.get('x-requested-with'),
-      ip: req.ip
+      ip: req.ip,
+      req: {
+        method: req.method,
+        headers: JSON.stringify(req.headers),
+        body: req.body ? req.body instanceof Buffer ? req.body.toString('base64') : JSON.stringify(req.body) : undefined
+      },
+      res: {
+        headers: undefined,
+        payload: undefined
+      }
     }
   }
   
