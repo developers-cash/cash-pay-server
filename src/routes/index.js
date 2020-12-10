@@ -11,7 +11,7 @@ const router = express.Router()
 /**
  * Root Route
  * @memberof Routes
- * 
+ *
  */
 class RootRoute {
   constructor () {
