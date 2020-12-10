@@ -7,11 +7,15 @@ const engine = require('../services/engine')
 const webhooks = require('../services/webhooks')
 const webSocket = require('../services/websocket')
 
+/**
+ * BIP70 Protocol
+ * @memberof Protocols
+ */
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Log the event as a BIP70 Payment Request
     res.locals.event.type = 'BIP70.PaymentRequest'
-
+    
     // Create the outputs in BIP70 format
     const outputs = invoiceDB.outputs.map(output => {
       const builtOutput = Utils.buildOutput(output)
@@ -46,14 +50,14 @@ class BIP70 {
       'Content-Length': request.length,
       'Content-Transfer-Encoding': 'binary'
     }
-
+    
     // Save payload for debugging
     res.locals.event.res.headers = JSON.stringify(headers)
     res.locals.event.res.body = payload.toString('base64')
 
     // Set output headers
     res.set(headers)
-      .send(payload)
+       .send(payload)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'requested', { invoice: invoiceDB.payloadPublic() })
@@ -109,13 +113,13 @@ class BIP70 {
       'Content-Length': payload.length,
       'Content-Transfer-Encoding': 'binary'
     }
-
+    
     // Save payload for debugging
     res.locals.event.res.headers = JSON.stringify(headers)
     res.locals.event.res.body = payload.toString('base64')
-
+    
     res.set(headers)
-      .send(payload)
+       .send(payload)
 
     // Notify any Websockets that might be listening
     webSocket.notify(invoiceDB._id, 'broadcasted', { invoice: invoiceDB.payloadPublic() })

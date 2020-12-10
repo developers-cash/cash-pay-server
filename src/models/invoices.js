@@ -7,10 +7,11 @@ const mongoose = require('mongoose')
 
 const schema = new mongoose.Schema({
   apiKey: { type: String, index: true },
+  currency: { type: String, default: 'BCH' },
   network: { type: String, default: 'main' },
   outputs: [{
     amount: String,
-    amountConverted: Number,
+    amountNative: Number,
     address: String,
     script: String
   }],
@@ -27,7 +28,7 @@ const schema = new mongoose.Schema({
     confirmed: String
   },
   totals: {
-    satoshiTotal: Number,
+    nativeTotal: Number,
     baseCurrency: String,
     baseCurrencyTotal: Number,
     userCurrency: String,
@@ -63,8 +64,8 @@ const schema = new mongoose.Schema({
  */
 schema.virtual('service').get(function () {
   return {
-    paymentURI: `https://${config.domain}/bch/pay/${this._id}`,
-    walletURI: `${(this.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/bch/pay/${this._id}`,
+    paymentURI: `https://${config.domain}/invoice/pay/${this._id}`,
+    walletURI: `${(this.network === 'main') ? 'bitcoincash' : 'bchtest'}:?r=https://${config.domain}/invoice/pay/${this._id}`,
     webSocketURI: `wss://${config.domain}`
   }
 })
@@ -84,17 +85,17 @@ schema.methods.payload = function () {
 }
 
 schema.methods.convertCurrencies = function () {
-  this.totals.satoshiTotal = 0
+  this.totals.nativeTotal = 0
   this.totals.baseCurrency = config.baseCurrency
   this.totals.baseCurrencyTotal = 0
   this.totals.userCurrencyTotal = 0
 
   this.outputs.forEach(output => {
-    output.amountConverted = rates.convertToBCH(output.amount)
+    output.amountNative = rates.convertToBCH(output.amount)
 
-    this.totals.satoshiTotal += output.amountConverted
-    this.totals.baseCurrencyTotal += rates.convertFromBCH(output.amountConverted, config.baseCurrency).toFixed(2)
-    this.totals.userCurrencyTotal += rates.convertFromBCH(output.amountConverted, this.userCurrency).toFixed(2)
+    this.totals.nativeTotal += output.amountNative
+    this.totals.baseCurrencyTotal += rates.convertFromBCH(output.amountNative, config.baseCurrency).toFixed(2)
+    this.totals.userCurrencyTotal += rates.convertFromBCH(output.amountNative, this.userCurrency).toFixed(2)
   })
 }
 

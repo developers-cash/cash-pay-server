@@ -5,11 +5,12 @@ const libCash = new LibCash()
 
 /**
  * Utility functions
+ * @memberof Libs
  */
 class Utils {
   static buildOutput (output) {
     const built = {
-      amount: output.amountConverted || 0
+      amount: output.amountNative || 0
     }
 
     // If address is set, create P2PKH script

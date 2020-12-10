@@ -12,6 +12,7 @@ const privateKey = libCash.ECPair.fromWIF(config.wif)
 
 /**
  * WebSocket Library for Notifying Clients of Payment Events
+ * @memberof Services
  */
 class WebSocket {
   constructor () {
