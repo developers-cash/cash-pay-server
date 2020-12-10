@@ -1,16 +1,17 @@
-# Cash Payment Service
 
-A self-hostable Bitcoin Cash BIP70 and JSON Payment Protocol service.
+# Cash Pay Server
+
+A self-hostable Bitcoin Cash BIP70 and JSON Payment Protocol Gateway.
 
 A public instance is available at:
-[https://v1.pay.infra.cash]
+https://v1.pay.infra.cash
 
 Administrative Interface for debugging is available at:
-[https://admin.v1.pay.infra.cash]
+https://admin.v1.pay.infra.cash
 
 Documentation:
-[REST-API Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-Webhooks.html)
-[Webhooks Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-Webhooks.html)
+[REST-API Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-Webhooks.html) | 
+[Webhooks Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-Webhooks.html) | 
 [Internal API](https://developers-cash.github.io/cash-pay-server/)
 
 ## Setup Example
