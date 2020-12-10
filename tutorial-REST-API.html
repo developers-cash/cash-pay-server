@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tutorial: REST-API | CashPayServer</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-jsdoc.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/tui-doc.css">
+
+    
+</head>
+<body>
+<nav class="lnb" id="lnb">
+    <div class="logo" style="">
+        
+            <a href="https://infra.cash" rel="noopener noreferrer" target="_blank">
+                <img src="https://raw.githubusercontent.com/developers-cash/cash-pay-server/master/logo.svg" width="100%" height="100%">
+            </a>
+        
+    </div>
+    <div class="title">
+        <h1><a href="index.html" class="link">CashPayServer</a></h1>
+        
+    </div>
+    <div class="search-container" id="search-container">
+        <input type="text" placeholder="Search">
+        <ul></ul>
+    </div>
+    
+        <ol class="lnb-tab">
+            <li id="api-tab">
+                <a href="#"><h4>API</h4></a>
+            </li>
+            <li id="examples-tab">
+                <a href="#"><h4>Guide</h4></a>
+            </li>
+        </ol>
+    
+    <div class="lnb-examples hidden"><h3>Guide</h3><ul><li><a href="tutorial-REST-API.html">REST-API</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="REST-API_sub"></div></li><li><a href="tutorial-Webhooks.html">Webhooks</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Webhooks_sub"></div></li></ul></div><div class="lnb-api hidden"><h3>Classes</h3><ul><li><a href="Authenticate.html">Authenticate</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Authenticate_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Authenticate.html#.isAPIKeyAllowed">isAPIKeyAllowed</a></li></ul></div></li><li><a href="Engine.html">Engine</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Engine_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Engine.html#broadcastTx">broadcastTx</a></li><li><a href="Engine.html#start">start</a></li></ul></div></li><li><a href="Libs.Utils.html">Utils</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Libs.Utils_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Libs.Utils.html#.matchesInvoice">matchesInvoice</a></li></ul></div></li><li><a href="Protocols.BIP70.html">BIP70</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Protocols.BIP70_sub"></div></li><li><a href="Protocols.JSONPaymentProtocol.html">JSONPaymentProtocol</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Protocols.JSONPaymentProtocol_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Protocols.JSONPaymentProtocol.html#.payment">payment</a></li><li><a href="Protocols.JSONPaymentProtocol.html#.paymentRequest">paymentRequest</a></li><li><a href="Protocols.JSONPaymentProtocol.html#.paymentVerification">paymentVerification</a></li></ul></div></li><li><a href="Rates.html">Rates</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Rates_sub"></div></li><li><a href="Routes.AdminRoute.html">AdminRoute</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Routes.AdminRoute_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Routes.AdminRoute.html#postSearch">postSearch</a></li></ul></div></li><li><a href="Routes.InvoiceRoute.html">InvoiceRoute</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Routes.InvoiceRoute_sub"></div></li><li><a href="Routes.RootRoute.html">RootRoute</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Routes.RootRoute_sub"></div></li><li><a href="Routes.SigningKeysRoute.html">SigningKeysRoute</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Routes.SigningKeysRoute_sub"></div></li><li><a href="Services.Webhooks.html">Webhooks</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Services.Webhooks_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Services.Webhooks.html#.error">error</a></li><li><a href="Services.Webhooks.html#broadcasted">broadcasted</a></li><li><a href="Services.Webhooks.html#broadcasting">broadcasting</a></li><li><a href="Services.Webhooks.html#confirmed">confirmed</a></li><li><a href="Services.Webhooks.html#requested">requested</a></li></ul></div></li><li><a href="Services.WebSocket.html">WebSocket</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Services.WebSocket_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Services.WebSocket.html#notify">notify</a></li><li><a href="Services.WebSocket.html#startServer">startServer</a></li></ul></div></li></ul></div><div class="lnb-api hidden"><h3>Namespaces</h3><ul><li><a href="Libs.html">Libs</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Libs_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Libs.html#.ExtendedError">ExtendedError</a></li></ul></div></li><li><a href="Protocols.html">Protocols</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Protocols_sub"></div></li><li><a href="Routes.html">Routes</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Routes_sub"></div></li><li><a href="Services.html">Services</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Services_sub"></div></li></ul></div>
+</nav>
+<div id="resizer"></div>
+
+<div class="main" id="main">
+    
+
+<section>
+    <header>
+        
+
+        <h2>REST-API</h2>
+    </header>
+
+    
+        <article class="readme">
+            <h1>REST-API</h1>
+<p>The following routes/parameters are considered stable and safe to use (unless indicated otherwise).</p>
+<p>Any route that is not documented here is unstable and may change in future.</p>
+<h2>Invoice Routes</h2>
+<h3>POST /invoice/create</h3>
+<p>HTTP endpoint used to create an invoice. Must be sent as a JSON payload.</p>
+<p><strong>Note: If you are not using cash-pay-server-js, you should omit apiKey, privateData and webhook.* when passing response back to browser.</strong></p>
+<h4>Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>apiKey</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>API Key to use</td>
+</tr>
+<tr>
+<td>currency</td>
+<td>String</td>
+<td>Optional</td>
+<td>&quot;BCH&quot;</td>
+<td>Currency for payment request (only supports BCH currently)</td>
+</tr>
+<tr>
+<td>network</td>
+<td>String</td>
+<td>Optional</td>
+<td>&quot;main&quot;</td>
+<td>Network to use (only supports &quot;main&quot; currently)</td>
+</tr>
+<tr>
+<td>outputs</td>
+<td>Array</td>
+<td>Required</td>
+<td></td>
+<td>Array containing transaction outputs</td>
+</tr>
+<tr>
+<td>outputs.amount</td>
+<td>String/Number</td>
+<td>Required</td>
+<td></td>
+<td>Amount in satoshis or a string to perform currency conversion (e.g. &quot;1.50USD&quot;)</td>
+</tr>
+<tr>
+<td>outputs.address</td>
+<td>String</td>
+<td>Required*</td>
+<td></td>
+<td>Address to receive output payment to</td>
+</tr>
+<tr>
+<td>outputs.script</td>
+<td>String</td>
+<td>Required*</td>
+<td></td>
+<td>Hex Output Script (can be used instead of address)</td>
+</tr>
+<tr>
+<td>expires</td>
+<td>Number</td>
+<td>Optional</td>
+<td>900 (15m)</td>
+<td>Number of seconds until invoice expires</td>
+</tr>
+<tr>
+<td>memo</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>Memo that will show in user's wallet for invoice</td>
+</tr>
+<tr>
+<td>userCurrency</td>
+<td>String</td>
+<td>Optional</td>
+<td>&quot;USD&quot;</td>
+<td>Currency that will be shown/calculated for end-user.</td>
+</tr>
+<tr>
+<td>merchantData</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>BIP70 Merchant Data to use on Invoice</td>
+</tr>
+<tr>
+<td>data</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>Data to pass with invoice. <strong>WILL</strong> be visible in Websocket Event payloads.</td>
+</tr>
+<tr>
+<td>privateData</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>Private Data to pass with invoice. <strong>WILL NOT</strong> be visible in Websocket Event payloads.</td>
+</tr>
+<tr>
+<td>webhook.broadcasting</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>URL that will be triggered <strong>before</strong> payment is broadcasted.</td>
+</tr>
+<tr>
+<td>webhook.broadcasted</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>URL that will be triggered <strong>after</strong> payment is broadcasted.</td>
+</tr>
+<tr>
+<td>webhook.confirmed</td>
+<td>String</td>
+<td>Optional</td>
+<td></td>
+<td>URL that will be triggered when payment is confirmed in block.</td>
+</tr>
+</tbody>
+</table>
+<h4>Example CURL Request</h4>
+<pre class="prettyprint source lang-sh"><code>curl -XPOST -H &quot;Content-type: application/json&quot; -d '{
+  &quot;outputs&quot;: [{
+    &quot;address&quot;: &quot;bitcoincash:qppcn0kghrpmx90s2kmstytf3jfvms59vyqvf4p5zw&quot;,
+    &quot;amount&quot;: &quot;0.25USD&quot;
+  }]
+}' 'https://v1.pay.infra.cash/invoice/create'
+</code></pre>
+<h4>Example Response</h4>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;totals&quot;: {
+    &quot;nativeTotal&quot;: 93519,
+    &quot;baseCurrency&quot;: &quot;USD&quot;,
+    &quot;baseCurrencyTotal&quot;: 0.25,
+    &quot;userCurrencyTotal&quot;: 0.25
+  },
+  &quot;currency&quot;: &quot;BCH&quot;,
+  &quot;network&quot;: &quot;main&quot;,
+  &quot;userCurrency&quot;: &quot;USD&quot;,
+  &quot;txIds&quot;: [],
+  &quot;outputs&quot;: [
+    {
+      &quot;address&quot;: &quot;bitcoincash:qppcn0kghrpmx90s2kmstytf3jfvms59vyqvf4p5zw&quot;,
+      &quot;amount&quot;: &quot;0.25USD&quot;,
+      &quot;amountNative&quot;: 93519,
+    }
+  ],
+  &quot;time&quot;: 1607580598.12,
+  &quot;events&quot;: [],
+  &quot;createdAt&quot;: &quot;2020-12-10T06:09:58.121Z&quot;,
+  &quot;updatedAt&quot;: &quot;2020-12-10T06:09:58.121Z&quot;,
+  &quot;expires&quot;: 1607581498.12,
+  &quot;service&quot;: {
+    &quot;paymentURI&quot;: &quot;https://v1.pay.infra.cash/invoice/pay/5fd1bbb6267e1204459e7560&quot;,
+    &quot;walletURI&quot;: &quot;bitcoincash:?r=https://v1.pay.infra.cash/invoice/pay/5fd1bbb6267e1204459e7560&quot;,
+    &quot;webSocketURI&quot;: &quot;wss://v1.pay.infra.cash&quot;
+  },
+  &quot;id&quot;: &quot;5fd1bbb6267e1204459e7560&quot;
+}
+</code></pre>
+        </article>
+    
+</section>
+
+
+
+</div>
+
+<footer>
+    <img class="logo" src="https://raw.githubusercontent.com/developers-cash/cash-pay-server/master/logo.svg" style="">
+    <div class="footer-text">CashPayServer V1</div>
+</footer>
+<script>prettyPrint();</script>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/tui-doc.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+    <script>
+        showLnbExamples();
+    </script>
+
+</body>
+</html>
