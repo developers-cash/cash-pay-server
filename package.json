@@ -24,7 +24,7 @@
     "express": "~4.16.0",
     "express-ws": "^4.0.0",
     "jsonschema": "^1.4.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "mongoose": "^5.11.6",
     "socket.io": "^2.3.0",
     "uuid": "^8.3.2"
