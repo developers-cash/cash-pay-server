@@ -15,10 +15,6 @@ Documentation:
 
 ## Quickstart
 
-The following is an example Docker-Compose file and assumes that Traefik is being used as a Reverse-Proxy.
-
-Otherwise if you are using a different reverse proxy (e.g. Nginx or Apache), remove the labels section and setup your Reverse Proxy to target port 8080.
-
 Create a `docker-compose.yml` file and adjust according to your needs:
 
 ```yaml
@@ -49,18 +45,13 @@ services:
       - MONGODB=mongodb://mongo:27017/app # (Required)
     depends_on:
       - mongo
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cash-pay-server.service=cash-pay-server"
-      - "traefik.http.routers.cash-pay-server.rule=Host(`v1.pay.infra.cash`)"
-      - "traefik.http.routers.cash-pay-server.entrypoints=websecure"
-      - "traefik.http.routers.cash-pay-server.tls.certresolver=le"
-      - "traefik.http.services.cash-pay-server.loadbalancer.server.port=8080"
     networks:
       - internal
 ```
 
 Run `docker-compose up` to start Cash Pay Server.
+
+By default, Cash Pay Server will run on port 8080. You will also need to configure your Reverse Proxy (e.g. Nginx, Apache or Traefik) with a valid SSL certificate.
 
 ## Environment Variables
 
