@@ -72,23 +72,15 @@ class App {
     app.use(routes)
 
     //
-    // Set port and start ExpressJS Server
+    // Start ExpressJS and Websocket Server
     //
-    var server = app.listen(config.port, function () {
+    var server = await app.listen(config.port, function () {
       console.log('Starting ExpressJS server')
       console.log(`ExpressJS listening at http://${server.address().address}:${server.address().port}`)
-    })
-
-    //
-    // Start the WebSocket Server
-    //
-    try {
       console.log('Starting Websocket server')
       webSocket.startServer(server)
       console.log('Websocket Server started')
-    } catch (err) {
-      console.error(err)
-    }
+    })
   }
 }
 

@@ -9,7 +9,7 @@ const libCash = new LibCash()
 class Utils {
   static buildOutput (output) {
     const built = {
-      amount: output.amountConverted || 0
+      amount: output.amountNative || 0
     }
 
     // If address is set, create P2PKH script
@@ -78,8 +78,6 @@ class Utils {
         }
       }
     }
-
-    console.log(invoiceOutputs)
 
     // If all outputs have been given, return true
     return !invoiceOutputs.length

@@ -2,77 +2,79 @@
 
 A self-hostable Bitcoin Cash BIP70 and JSON Payment Protocol service.
 
-## Setup Example
+## Quickstart
 
 The following is an example Docker-Compose file and assumes that Traefik is being used as a Reverse-Proxy.
+
+Otherwise if you are using a different reverse proxy (e.g. Nginx or Apache), remove the labels section and setup your Reverse Proxy to target port 8080.
 
 Create a `docker-compose.yml` file and adjust according to your needs:
 
 ```yaml
-version: "3.1"
+version: "3.3"
 
 networks:
-  traefik:
-    external: true
   internal:
     external: false
-  external:
-    external: true
 
 services:
-    
+
   mongo:
     image: mongo
     restart: always
     networks:
       - internal
     volumes:
-      - ./.docker-storage/.mongo:/data/db
+      - ./mongo:/data/db
     environment:
       MONGO_INITDB_DATABASE: app
-      
-  pay:
-    image: "node"
-    user: "node"
-    working_dir: /home/node/app
-    restart: always
+
+  cash-pay-server:
+    image: "developerscash/cash-pay-server"
     tty: true
     stdin_open: true
-    volumes:
-      - ./pay.bip70.cash:/home/node/app
-    command: "npm run dev"
+    restart: always
+    environment:
+      - DOMAIN=v1.pay.infra.cash # (Required)
+      - WIF=L4vmKsStbQaCvaKPnCzdRArZgdAxTqVx8vjMGLW5nHtWdRguiRi1 # (Required)
+      - MONGODB=mongodb://mongo:27017/app # (Required)
     depends_on:
       - mongo
     labels:
-        - traefik.frontend.rule=Host:pay.${DOMAIN}
-        - traefik.docker.network=traefik
-        - traefik.port=8080
-        - traefik.frontend.passHostHeader=true
-        - traefik.enable=true
+      - "traefik.enable=true"
+      - "traefik.http.routers.cash-pay-server.service=cash-pay-server"
+      - "traefik.http.routers.cash-pay-server.rule=Host(`v1.pay.infra.cash`)"
+      - "traefik.http.routers.cash-pay-server.entrypoints=websecure"
+      - "traefik.http.routers.cash-pay-server.tls.certresolver=le"
+      - "traefik.http.services.cash-pay-server.loadbalancer.server.port=8080"
     networks:
-      - traefik
       - internal
-      - external
-    environment:
-      - DOMAIN=pay.${DOMAIN}
-      - NODE_ENV=production
 ```
 
-Create a `.env` file in the same directory as your `docker-compose.yml`.
-(Alternatively, the values can be hard-coded in your `docker-compose.yml` above.)
+Run `docker-compose up` to start Cash Pay Server.
 
-```
-# Domain of your Cash Payment Server
-DOMAIN=bip70.cash 
-```
-
-Run `docker-compose up` to start the Cash Payment Service.
-
-# API Key Whitelisting
-
-If the service is not intended to be open to the public, API Keys can be whitelisted by using a
-comma-separated environment variable.
+## Environment Variables
 
 ```sh
-API_KEYS=someAPIKeyHere,someOtherAPIKeyHere
+# (REQUIRED) The public facing domain of your service
+DOMAIN=pay.your-service.com
+
+# (REQUIRED) Private Key in WIF format (to sign webhooks)
+WIF=L3pajCnJrxicPsPQmV7KLkyeQ9q5vr1tygSK4LshQgUWALjJJ5T4
+
+# (REQUIRED) MongoDB connection URL
+MONGODB=mongodb://mongo:27017/app
+
+# Port to run CashPayServer on
+PORT=8080 # (default: 8080)
+
+# Currency Exchange Rates refresh interval (in seconds)
+RATES_REFRESH=300 # (default: 300)
+
+# Base Currency that Cash Pay Server should store conversions in
+BASE_CURRENCY=USD # (default: USD)
+
+# A comma-separated list of whitelisted API Keys if this Cash Pay Server is private
+API_KEYS=RandomAPIKey123,RandomAPIKey456 # (default: null)
+
 ```

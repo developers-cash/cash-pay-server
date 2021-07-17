@@ -23,7 +23,10 @@ class WebSocket {
    */
   async startServer (server) {
     // Setup Websockets
-    const socket = SocketIO(server)
+    const socket = SocketIO(server, {
+      pingTimeout: 5000,
+      pingInterval: 25000
+    })
 
     socket.on('connection', (client) => this._onConnection(client))
   }
@@ -59,9 +62,12 @@ class WebSocket {
    * @private
    */
   async _onConnection (client) {
+    console.log(`[Websockets] Connected ${client.id}`)
+    
     // Setup event listeners
     client.on('subscribe', (msg) => this._onSubscribe(client, msg))
     client.on('unsubscribe', (msg) => this._onUnsubscribe(client, msg))
+    client.on('disconnect', (msg) => this._onDisconnect(client, msg))
   }
 
   /**
@@ -102,6 +108,11 @@ class WebSocket {
     })
   }
 
+  async _onDisconnect (client, msg) {
+    console.log(`[Websockets] Disconnected ${client.id}: ${msg}`)
+    delete this.subscriptions[msg.invoiceId]
+  }
+  
   _buildSignature (payload) {
     const digest = Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8')
     const signature = libCash.ECPair.sign(privateKey, digest)

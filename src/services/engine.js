@@ -30,6 +30,13 @@ class Engine {
     this.electrum.addServer('bitcoincash.network')
     this.electrum.addServer('bch0.kister.net')
 
+    // Notify upon events
+    this.electrum.on('connected', () => this.onEvent('Connected'))
+    this.electrum.on('disconnected', () => this.onEvent('Disonnected'))
+    this.electrum.on('degraded', () => this.onEvent('Degraded'))
+    this.electrum.on('disabled', () => this.onEvent('Disabled'))
+    this.electrum.on('ready', () => this.onEvent('Ready'))
+    
     // Wait for enough connections to be available.
     await this.electrum.ready()
 
@@ -38,6 +45,13 @@ class Engine {
 
     // Clean up empty and expired invoices
     // setInterval(this._cleanAbandonedInvoices, 1 * 60 * 1000)
+  }
+  
+  /**
+   * 
+   */
+  async onEvent(message) {
+    console.log(`[Electrum] ${message}`)
   }
 
   /**
@@ -56,6 +70,7 @@ class Engine {
       const txId = await this.electrum.request('blockchain.transaction.broadcast', txs[i])
 
       if (typeof txId !== 'string') {
+        console.log(txId)
         throw new Error('Failed to send transaction.')
       }
 
@@ -117,7 +132,7 @@ class Engine {
   }
 
   async _cleanAbandonedInvoices () {
-    console.log('cleaning')
+    console.log('[Electrum] Cleaning Abandoned Invoices')
 
     await Invoice.deleteMany({
       events: { $size: 0 },

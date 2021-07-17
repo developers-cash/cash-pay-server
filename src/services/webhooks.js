@@ -15,7 +15,7 @@ const privateKey = libCash.ECPair.fromWIF(config.wif)
  */
 class Webhooks {
   async start () {
-    console.log('Starting Webhooks Service')
+    console.log('[Webhooks] Starting')
   }
 
   async send (endpoint, event, payload) {

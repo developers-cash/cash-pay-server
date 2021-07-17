@@ -4,11 +4,11 @@ const config = require('../config')
 const mongoose = require('mongoose')
 
 mongoose.connection.on('connected', () => {
-  console.log('MongoDB is connected')
+  console.log('[Mongoose] Connected')
 })
 
 mongoose.connection.on('error', (err) => {
-  console.log(`Could not connect to MongoDB because of ${err}`)
+  console.log(`[Mongoose] Could not connect to MongoDB because of ${err}`)
   process.exit(1)
 })
 

@@ -47,8 +47,7 @@ class Rates {
       const priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH')
       this._rates = priceRes.data.data.rates
     } catch (err) {
-      console.error('Error refreshing rates')
-      console.error(err)
+      console.error(`[Rates] ${err.message}`)
       return false
     }
   }
