@@ -45,7 +45,7 @@ services:
     restart: always
     environment:
       - DOMAIN=v1.pay.infra.cash # (Required)
-      - WIF=L4vmKsStbQaCvaKPnCzdRArZgdAxTqVx8vjMGLW5nHtWdRguiRi1 # (Required)
+      - WIF=L3pajCnJrxicPsPQmV7KLkyeQ9q5vr1tygSK4LshQgUWALjJJ5T4 # (Required)
       - MONGODB=mongodb://mongo:27017/app # (Required)
     depends_on:
       - mongo
