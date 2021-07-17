@@ -132,7 +132,7 @@ class Engine {
   }
 
   async _cleanAbandonedInvoices () {
-    console.log('[Electrum] Cleaning Abandoned Invoices')
+    console.log('cleaning')
 
     await Invoice.deleteMany({
       events: { $size: 0 },

@@ -11,7 +11,7 @@ const privateKey = libCash.ECPair.fromWIF(config.wif)
 
 /**
  * Webhooks
- * @memberof Services
+ * @todo Refactor this into a service
  */
 class Webhooks {
   async start () {

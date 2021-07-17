@@ -12,10 +12,6 @@ const libCash = new LibCash()
 const privateKey = libCash.ECPair.fromWIF(config.wif)
 const publicKey = libCash.ECPair.toPublicKey(privateKey)
 
-/**
-  * JSON Payment Protocol Signing Keys
-  * @memberof Routes
-  */
 class SigningKeysRoute {
   constructor () {
     router.all('/paymentProtocol.json', this.allPaymentProtocol)

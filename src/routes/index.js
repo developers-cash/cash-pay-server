@@ -3,16 +3,6 @@
 const express = require('express')
 const router = express.Router()
 
-/**
- * CashPayServer routes
- * @namespace Routes
- */
-
-/**
- * Root Route
- * @memberof Routes
- *
- */
 class RootRoute {
   constructor () {
     router.get('/', (req, res) => { res.send({ status: 'OK' }) })

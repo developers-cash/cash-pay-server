@@ -7,10 +7,6 @@ const engine = require('../services/engine')
 const webhooks = require('../services/webhooks')
 const webSocket = require('../services/websocket')
 
-/**
- * BIP70 Protocol
- * @memberof Protocols
- */
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Log the event as a BIP70 Payment Request
@@ -81,6 +77,7 @@ class BIP70 {
         script: output.script.toString('hex')
       }
     })
+    console.log(invoiceDB.refundTo)
 
     // Verify the constructed transaction matches what's in the invoice
     if (!Utils.matchesInvoice(invoiceDB, transactions)) {

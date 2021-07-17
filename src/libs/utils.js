@@ -5,7 +5,6 @@ const libCash = new LibCash()
 
 /**
  * Utility functions
- * @memberof Libs
  */
 class Utils {
   static buildOutput (output) {
@@ -79,6 +78,8 @@ class Utils {
         }
       }
     }
+
+    console.log(invoiceOutputs)
 
     // If all outputs have been given, return true
     return !invoiceOutputs.length

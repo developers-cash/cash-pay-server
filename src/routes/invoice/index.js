@@ -20,10 +20,6 @@ const JSONPaymentProtocol = require('../../protocols/json-payment-protocol')
 // Validation
 var validate = require('jsonschema').validate
 
-/**
-  * Routes pertaining to invoice creation
-  * @memberof Routes
-  */
 class InvoiceRoute {
   constructor () {
     // Define the routes
@@ -210,12 +206,8 @@ class InvoiceRoute {
       type: 'object',
       properties: {
         apiKey: { type: 'string', maxLength: 128 },
-<<<<<<< HEAD:src/routes/invoice/index.js
         chain: { type: 'string', maxLength: 8 },
         currency: { type: 'string', maxLength: 8 },
-=======
-        currency: { type: 'String', maxLength: 8 },
->>>>>>> 5675fce91cf0e451a7cf7fc392e22625a2c96466:src/routes/bch/index.js
         network: { type: 'string', maxlength: 8 },
         outputs: {
           type: 'array',
