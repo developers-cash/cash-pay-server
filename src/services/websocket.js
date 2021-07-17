@@ -63,7 +63,7 @@ class WebSocket {
    */
   async _onConnection (client) {
     console.log(`[Websockets] Connected ${client.id}`)
-    
+
     // Setup event listeners
     client.on('subscribe', (msg) => this._onSubscribe(client, msg))
     client.on('unsubscribe', (msg) => this._onUnsubscribe(client, msg))
@@ -112,7 +112,7 @@ class WebSocket {
     console.log(`[Websockets] Disconnected ${client.id}: ${msg}`)
     delete this.subscriptions[msg.invoiceId]
   }
-  
+
   _buildSignature (payload) {
     const digest = Buffer.from(libCash.Crypto.sha256(JSON.stringify(payload)), 'utf8')
     const signature = libCash.ECPair.sign(privateKey, digest)

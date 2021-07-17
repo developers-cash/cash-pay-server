@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('path')
 module.exports = {
   entry: './src/app.js',
   output: {
@@ -6,4 +6,4 @@ module.exports = {
     filename: 'app.js'
   },
   target: 'node'
-};
+}

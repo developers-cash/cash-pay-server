@@ -36,7 +36,7 @@ class Engine {
     this.electrum.on('degraded', () => this.onEvent('Degraded'))
     this.electrum.on('disabled', () => this.onEvent('Disabled'))
     this.electrum.on('ready', () => this.onEvent('Ready'))
-    
+
     // Wait for enough connections to be available.
     await this.electrum.ready()
 
@@ -46,11 +46,11 @@ class Engine {
     // Clean up empty and expired invoices
     // setInterval(this._cleanAbandonedInvoices, 1 * 60 * 1000)
   }
-  
+
   /**
-   * 
+   *
    */
-  async onEvent(message) {
+  async onEvent (message) {
     console.log(`[Electrum] ${message}`)
   }
 
