@@ -41,9 +41,7 @@ services:
       MONGO_INITDB_DATABASE: app
 
   cash-pay-server:
-    image: "developerscash/cash-pay-server"
-    tty: true
-    stdin_open: true
+    image: "developerscash/cash-pay-server:v1-latest"
     restart: always
     environment:
       - DOMAIN=v1.pay.infra.cash # (Required)
