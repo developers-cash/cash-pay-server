@@ -17,6 +17,7 @@ const privateKey = libCash.ECPair.fromWIF(config.wif)
 /**
  * JSON Payment Protocol
  * See: https://github.com/bitpay/jsonPaymentProtocol/blob/master/v1/specification.md
+ * @memberof Protocols
  */
 class JSONPaymentProtocol {
   /**

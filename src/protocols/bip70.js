@@ -7,6 +7,10 @@ const engine = require('../services/engine')
 const webhooks = require('../services/webhooks')
 const webSocket = require('../services/websocket')
 
+/**
+ * BIP70 Protocol
+ * @memberof Protocols
+ */
 class BIP70 {
   static async paymentRequest (req, res, invoiceDB) {
     // Log the event as a BIP70 Payment Request

@@ -5,6 +5,7 @@ const libCash = new LibCash()
 
 /**
  * Utility functions
+ * @memberof Libs
  */
 class Utils {
   static buildOutput (output) {

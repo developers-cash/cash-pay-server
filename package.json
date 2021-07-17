@@ -10,7 +10,8 @@
     "prepublishOnly": "npm run lint",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "docs": "jsdoc src -c jsdoc.json -d ../cash-pay-server-ghpages"
   },
   "dependencies": {
     "@developers.cash/libcash-js": "^0.9.10",
@@ -23,6 +24,7 @@
     "express": "~4.16.0",
     "express-ws": "^4.0.0",
     "jsonschema": "^1.4.0",
+<<<<<<< HEAD
     "lodash": "^4.17.21",
     "mongoose": "^5.12.2",
     "socket.io": "^2.4.1",
@@ -30,13 +32,28 @@
   },
   "devDependencies": {
     "eslint": "^7.22.0",
+=======
+    "lodash": "^4.17.20",
+    "mongoose": "^5.11.6",
+    "socket.io": "^2.3.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^7.15.0",
+>>>>>>> 5675fce91cf0e451a7cf7fc392e22625a2c96466
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-standard": "^4.1.0",
+<<<<<<< HEAD
     "nodemon": "^2.0.7",
     "webpack": "^5.45.1",
     "webpack-cli": "^4.7.2"
+=======
+    "jsdoc": "^3.6.6",
+    "nodemon": "^2.0.6",
+    "tui-jsdoc-template": "^1.2.2"
+>>>>>>> 5675fce91cf0e451a7cf7fc392e22625a2c96466
   }
 }

@@ -12,6 +12,7 @@ const Invoice = require('../../models/invoices')
 
 /**
  * Admin routes for Invoice Management
+ * @memberof Routes
  */
 class AdminRoute {
   constructor () {

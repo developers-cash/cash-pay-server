@@ -1,0 +1,21 @@
+{
+    "opts": {
+        "template": "node_modules/tui-jsdoc-template",
+        "encoding": "utf8",
+        "recurse": true,
+        "readme": "./README.md",
+        "tutorials": "docs"
+    },
+    "templates": {
+        "name": "CashPayServer",
+        "logo": {
+            "url": "https://raw.githubusercontent.com/developers-cash/cash-pay-server/master/logo.svg",
+            "link": "https://infra.cash"
+        },
+        "tabNames": {
+            "api": "API",
+            "tutorials": "Guide"
+        },
+        "footerText": "CashPayServer V1"
+    }
+}
