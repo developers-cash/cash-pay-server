@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Namespace: Protocols | CashPayServer</title>
+    <title>Class: WebSocket | CashPayServer</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -57,7 +57,9 @@
 
 <header>
     
-        <h2>Protocols</h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>WebSocket<span class="signature">()</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description">WebSocket Library for Notifying Clients of Payment Events</div>
         
     
 </header>
@@ -67,10 +69,49 @@
         <div class="container-overview">
         
             
-                <div class="description">Protocols supported by CashPayServer</div>
-            
 
+<dt>
+    
+        <h4 class="name" id="WebSocket">
             
+                new <span class="type-signature"></span>WebSocket<span class="signature">()</span><span class="type-signature"></span>
+                
+            
+            <div class="container-source members">
+                <code><a href="services_websocket.js.html">services/websocket.js</a></code>,
+                <code><a href="services_websocket.js.html#line16">line 16</a></code>
+            </div>
+            
+        </h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 
 
 <dl class="details">
@@ -107,7 +148,10 @@
 </dl>
 
 
-            
+    
+
+</dd>
+
         
         </div>
     
@@ -126,6 +170,270 @@
 
     
 
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
+                
+
+<dt>
+    
+        <h4 class="name" id="notify">
+            
+                <span class="type-signature"><span class="icon green">async</span> </span>notify<span class="signature">(invoiceId, event, invoice)</span><span class="type-signature"></span>
+                
+            
+            <div class="container-source members">
+                <code><a href="services_websocket.js.html">services/websocket.js</a></code>,
+                <code><a href="services_websocket.js.html#line41">line 41</a></code>
+            </div>
+            
+        </h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Notify any Websocket connections that are subscribed to
+the given invoiceId that an event has occurred.
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="container-params">
+        <h5>Parameters:</h5>
+        
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>invoiceId</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ID of the invoice</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event that was triggered</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>invoice</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The Invoice data</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+</dd>
+
+            
+                
+
+<dt>
+    
+        <h4 class="name" id="startServer">
+            
+                <span class="type-signature"><span class="icon green">async</span> </span>startServer<span class="signature">()</span><span class="type-signature"></span>
+                
+            
+            <div class="container-source members">
+                <code><a href="services_websocket.js.html">services/websocket.js</a></code>,
+                <code><a href="services_websocket.js.html#line24">line 24</a></code>
+            </div>
+            
+        </h4>
+
+        
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Setup the Websocket server
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+</dd>
+
+            </dl>
     
 
     
@@ -150,7 +458,7 @@
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'Protocols_sub'.replace(/"/g, '_');
+        var id = 'WebSocket_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 
