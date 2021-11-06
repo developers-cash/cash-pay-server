@@ -30,7 +30,7 @@ class BIP70 {
     details.set('payment_url', invoiceDB.service.paymentURI)
 
     // Optional fields
-    if (_.get(invoiceDB, 'invoice.memo')) {
+    if (invoiceDB.memo)) {
       details.set('memo', invoiceDB.memo)
     }
 
