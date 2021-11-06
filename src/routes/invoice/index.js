@@ -221,6 +221,8 @@ class InvoiceRoute {
           }
         },
         expires: { type: 'integer', minimum: 30, maximum: 24 * 60 * 60 },
+        memo: { type: 'string' },
+        memoPaid: { type: 'string' },
         merchantData: { type: 'string', maxLength: 2048 },
         data: { type: 'string', maxLength: 2048 },
         privateData: { type: 'string', maxLength: 2048 },

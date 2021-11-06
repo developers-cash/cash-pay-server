@@ -18,6 +18,7 @@ const schema = new mongoose.Schema({
   time: { type: Number, default: () => new Date().getTime() / 1000 },
   expires: Number,
   memo: String,
+  memoPaid: String,
   merchantData: String,
   data: String,
   privateData: String,

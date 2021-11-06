@@ -13,7 +13,7 @@ class Rates {
   }
 
   async start () {
-    setInterval(this.refresh, config.ratesRefresh * 1000)
+    setInterval(() => this.refresh(), config.ratesRefresh * 1000)
     this.refresh()
   }
 
@@ -44,6 +44,7 @@ class Rates {
 
   async refresh () {
     try {
+      console.log('[Rates] Refreshing from Coinbase')
       const priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH')
       this._rates = priceRes.data.data.rates
     } catch (err) {

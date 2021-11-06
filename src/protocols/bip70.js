@@ -84,6 +84,9 @@ class BIP70 {
       throw new Error('Transaction does not match invoice')
     }
 
+    // Send broadcasting websocket event
+    webSocket.notify(invoiceDB._id, 'broadcasting', { invoice: invoiceDB.payloadPublic() })
+
     // Send Broadcasting Webhook Notification (if it is defined)
     if (invoiceDB.webhook && invoiceDB.webhook.broadcasting) {
       res.locals.event.status = 'webhook.broadcasting'
@@ -105,7 +108,7 @@ class BIP70 {
     // Make a payment acknowledgement
     var ack = new PaymentProtocol().makePaymentACK()
     ack.set('payment', payment.message)
-    ack.set('memo', 'Payment successful.')
+    ack.set('memo', invoiceDB.memoPaid || 'Payment successful.')
 
     // Compile Headers and payload
     const payload = ack.serialize()
