@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const PaymentProtocol = require('bitcore-payment-protocol')
 
 const Utils = require('../libs/utils')
