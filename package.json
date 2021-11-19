@@ -11,7 +11,8 @@
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags",
-    "docs": "jsdoc src -c jsdoc.json -d ../cash-pay-server-ghpages"
+    "docs": "jsdoc src -c jsdoc.json -d ../cash-pay-server-ghpages",
+    "docker": "docker build -t developerscash/cash-pay-server:v1-latest . && docker push developerscash/cash-pay-server:v1-latest"
   },
   "dependencies": {
     "@developers.cash/libcash-js": "^0.9.10",

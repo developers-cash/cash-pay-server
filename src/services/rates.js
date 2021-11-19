@@ -50,8 +50,6 @@ class Rates {
 
       // Argentinian Pesos need a separate API
       this._rates.ARS = await this.argentinePeso()
-
-      console.log(this._rates)
     } catch (err) {
       console.error(`[Rates] ${err.message}`)
       return false
