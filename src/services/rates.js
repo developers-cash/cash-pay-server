@@ -47,10 +47,21 @@ class Rates {
       console.log('[Rates] Refreshing from Coinbase')
       const priceRes = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=BCH')
       this._rates = priceRes.data.data.rates
+
+      // Argentinian Pesos need a separate API
+      this._rates.ARS = await this.argentinePeso()
+
+      console.log(this._rates)
     } catch (err) {
       console.error(`[Rates] ${err.message}`)
       return false
     }
+  }
+
+  // @hack for our Argentinian friends
+  async argentinePeso () {
+    const priceRes = await axios.get('https://api.yadio.io/convert/1/usd/ars')
+    return `${priceRes.data.rate * this._rates.USD}`
   }
 }
 
