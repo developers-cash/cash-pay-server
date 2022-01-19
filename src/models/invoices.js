@@ -97,11 +97,11 @@ schema.methods.convertCurrencies = function () {
 
   this.outputs.forEach(output => {
     output.amountNative = rates.convertToBCH(output.amount)
-
     this.totals.nativeTotal += output.amountNative
-    this.totals.baseCurrencyTotal += rates.convertFromBCH(output.amountNative, config.baseCurrency).toFixed(2)
-    this.totals.userCurrencyTotal += rates.convertFromBCH(output.amountNative, this.userCurrency).toFixed(2)
   })
+
+  this.totals.baseCurrencyTotal += rates.convertFromBCH(this.totals.nativeTotal, config.baseCurrency).toFixed(2)
+  this.totals.userCurrencyTotal += rates.convertFromBCH(this.totals.nativeTotal, this.userCurrency).toFixed(2)
 }
 
 schema.methods.hasEvent = function (eventType) {
