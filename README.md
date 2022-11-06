@@ -10,7 +10,7 @@ https://admin.v1.pay.infra.cash
 
 Documentation:
 [REST-API Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-REST-API.html) |
-[Webhooks Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-Webhooks.html) |
+[Webhooks Documentation](https://developers-cash.github.io/cash-pay-server/tutorial-Webhooks_.html) |
 [Internal API](https://developers-cash.github.io/cash-pay-server/) (UNSTABLE)
 
 ## Quickstart
