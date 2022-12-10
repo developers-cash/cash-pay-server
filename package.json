@@ -22,7 +22,7 @@
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
     "electrum-cash": "^2.0.6",
-    "express": "~4.16.0",
+    "express": "~4.17.3",
     "express-ws": "^4.0.0",
     "jsonschema": "^1.4.0",
     "lodash": "^4.17.21",
